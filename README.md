@@ -6,7 +6,9 @@ Exception Studio is a full-stack workbench for reviewing an imperfect operationa
 
 Created and maintained by **Dhruba Poudel**. React · TypeScript · Node.js · SQLite.
 
-**Public demo: deployment verification pending.** The intended address is [studio.dhrub.com.np](https://studio.dhrub.com.np/). Until deployment is verified, use the local instructions below.
+**[Open the working demo →](https://studio.dhrub.com.np/)** · [Read the case study](https://about.dhrub.com.np/cases/exception-studio.html) · [Automated checks](https://github.com/dhrubasuz/exception-studio/actions)
+
+The public HTTPS workflow was verified on **27 October 2026**: load the fictional sample, record six review decisions, freeze revision 7, and download its CSV and manifest. The 1,270-byte CSV matched the manifest's SHA-256, with 22 source rows reconciled to 21 accepted and one excluded. This is a bounded public demonstration, not a production business rollout.
 
 ![Exception Studio workspace: reconciliation totals, exception queue and original-versus-current record inspector](docs/workspace.png)
 

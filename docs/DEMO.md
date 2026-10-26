@@ -2,7 +2,7 @@
 
 Prepared by **Dhruba Poudel** · **27 October 2026**
 
-**Public demo: deployment verification pending.** Run the application locally using the [README instructions](../README.md) until the hosted route is verified. All examples below use fictional records and notes.
+**[Open the public HTTPS demo](https://studio.dhrub.com.np/)** or run it locally using the [README instructions](../README.md). The hosted import, decisions, publication and actual downloads were verified on 27 October 2026. All examples below use fictional records and notes.
 
 ## A five-minute review
 
