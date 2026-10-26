@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="730" viewBox="0 0 1180 730" fill="#173d32" role="img" aria-labelledby="title desc">
+  <title id="title">Exception Studio architecture</title>
+  <desc id="desc">A same-origin React client sends bounded commands to a Node HTTP API. SQLite transactions preserve source records, validate corrections and freeze publications. Anonymous cookie access expires after 24 hours.</desc>
+  <metadata>Author: Dhruba Poudel; Creator: Dhruba Poudel; Last Modified By: Dhruba Poudel; Created: 2026-10-27</metadata>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#557769"/></marker>
+    <style>text{font-family:Arial,Helvetica,sans-serif}.label{font-size:12px;font-weight:700;letter-spacing:1.5px}.heading{font-size:22px;font-weight:700}.body{font-size:15px;fill:#456057}.small{font-size:13px;fill:#52685f}.rule{stroke:#557769;stroke-width:2;fill:none;marker-end:url(#arrow)}</style>
+  </defs>
+  <rect width="1180" height="730" fill="#f3f4ed"/>
+  <text class="label" x="46" y="43">EXCEPTION STUDIO / SYSTEM DESIGN</text>
+  <text x="46" y="83" font-size="32" font-weight="700">One review workflow. Three inspectable layers.</text>
+  <text class="body" x="46" y="112">Source context, explicit decisions and frozen output stay connected.</text>
+  <rect x="46" y="153" width="300" height="192" rx="14" fill="#fff" stroke="#ced7ca"/>
+  <text class="label" x="69" y="185">01 / REACT + TYPESCRIPT</text>
+  <text class="heading" x="69" y="218">Review workspace</text>
+  <text class="body" x="69" y="249">Original vs current values</text>
+  <text class="body" x="69" y="274">Reasons, counts and history</text>
+  <text class="body" x="69" y="299">Visible conflict / retry recovery</text>
+  <text class="small" x="69" y="325">Browser holds an opaque cookie</text>
+  <path class="rule" d="M348 241 H413"/>
+  <text class="small" x="356" y="225">JSON</text>
+  <rect x="420" y="153" width="300" height="192" rx="14" fill="#fff" stroke="#ced7ca"/>
+  <text class="label" x="443" y="185">02 / NODE 24 HTTP API</text>
+  <text class="heading" x="443" y="218">Command boundary</text>
+  <text class="body" x="443" y="249">Same-origin, bounded requests</text>
+  <text class="body" x="443" y="274">Expected revision + retry key</text>
+  <text class="body" x="443" y="299">Validation owned by the server</text>
+  <text class="small" x="443" y="325">Bundled fictional fixtures only</text>
+  <path class="rule" d="M722 241 H787"/>
+  <text class="small" x="731" y="225">SQL</text>
+  <rect x="794" y="153" width="340" height="192" rx="14" fill="#e2eee2" stroke="#adbfaa"/>
+  <text class="label" x="817" y="185">03 / SQLITE</text>
+  <text class="heading" x="817" y="218">Persistent state</text>
+  <text class="body" x="817" y="249">Source + current records</text>
+  <text class="body" x="817" y="274">Events + compressed retry results</text>
+  <text class="body" x="817" y="299">Frozen CSV + manifest</text>
+  <text class="small" x="817" y="325">Stored outside static client assets</text>
+  <rect x="46" y="385" width="1088" height="172" rx="14" fill="#173d32"/>
+  <text x="69" y="417" font-family="Arial,Helvetica,sans-serif" font-size="12" font-weight="700" letter-spacing="1.5" fill="#b6d6be">ONE WRITE TRANSACTION</text>
+  <text x="69" y="453" font-family="Arial,Helvetica,sans-serif" font-size="21" font-weight="700" fill="#fff">Check retry → verify revision → apply decision → revalidate batch → commit</text>
+  <text x="69" y="488" font-family="Arial,Helvetica,sans-serif" font-size="15" fill="#d6e4d5">A failed command rolls back its row change, revision, event and retry allocation together.</text>
+  <text x="69" y="522" font-family="Arial,Helvetica,sans-serif" font-size="15" fill="#d6e4d5">Publication freezes bytes at a revision. Later corrections do not rewrite earlier downloads.</text>
+  <text class="label" x="46" y="604">TRUST + LIFETIME</text>
+  <text class="body" x="46" y="633">Anonymous cookie access · 24-hour expiry · operator-trusted storage · no verified approval identity</text>
+  <text class="body" x="46" y="658">Public data may reset on redeployment. Cleanup is not a secure-erasure guarantee.</text>
+  <path d="M46 685H1134" stroke="#ced7ca"/>
+  <text class="small" x="46" y="709">Architecture and implementation: Dhruba Poudel</text>
+  <text class="small" x="1050" y="709">27 Oct 2026</text>
+</svg>
