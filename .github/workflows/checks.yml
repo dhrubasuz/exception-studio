@@ -20,6 +20,8 @@ jobs:
         run: npm install --global pnpm@11.25.0
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
+      - name: Check consistent source formatting
+        run: pnpm format:check
       - name: Verify the domain, database, HTTP API and interface
         run: pnpm test
       - name: Build the complete application

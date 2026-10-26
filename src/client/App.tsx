@@ -1,11 +1,11 @@
 // Author, creator and maintainer: Dhruba Poudel.
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from 'react';
 import type {
   DecisionCommand,
   FixtureId,
   RowView,
   WorkspaceSnapshot,
-} from "../shared/contracts.js";
+} from '../shared/contracts.js';
 import {
   createSandbox,
   loadWorkspace,
@@ -13,8 +13,8 @@ import {
   refreshWorkspace,
   RequestError,
   sendMutation,
-} from "./api";
-import type { MutationRequest } from "./api";
+} from './api';
+import type { MutationRequest } from './api';
 import {
   DecisionHistory,
   Footer,
@@ -27,12 +27,12 @@ import {
   UnderTheHood,
   Welcome,
   WorkspaceNavigation,
-} from "./components";
-import { held } from "./view";
-import type { WorkspaceView } from "./view";
+} from './components';
+import { held } from './view';
+import type { WorkspaceView } from './view';
 
 interface Feedback {
-  kind: "error" | "conflict" | "unknown" | "success";
+  kind: 'error' | 'conflict' | 'unknown' | 'success';
   title: string;
   message: string;
   details?: string[];
@@ -44,12 +44,10 @@ export function App() {
   const [busy, setBusy] = useState(false);
   const [sessionNeedsReload, setSessionNeedsReload] = useState(false);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
-  const [pendingRetry, setPendingRetry] = useState<MutationRequest | null>(
-    null,
-  );
+  const [pendingRetry, setPendingRetry] = useState<MutationRequest | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editorEpoch, setEditorEpoch] = useState(0);
-  const [view, setView] = useState<WorkspaceView>("review");
+  const [view, setView] = useState<WorkspaceView>('review');
   const [newSandbox, setNewSandbox] = useState(false);
   const mounted = useRef(true);
   const mutationInFlight = useRef(false);
@@ -68,14 +66,13 @@ export function App() {
       .catch((error: unknown) => {
         if (!mounted.current || controller.signal.aborted) return;
         setFeedback({
-          kind: "error",
-          title: "The workspace could not be opened.",
-          message: error instanceof Error ? error.message : "Please try again.",
+          kind: 'error',
+          title: 'The workspace could not be opened.',
+          message: error instanceof Error ? error.message : 'Please try again.',
         });
       })
       .finally(() => {
-        if (mounted.current && requestSequence === sequence.current)
-          setBooting(false);
+        if (mounted.current && requestSequence === sequence.current) setBooting(false);
       });
     return () => {
       mounted.current = false;
@@ -102,14 +99,14 @@ export function App() {
     try {
       const next = await sendMutation(command);
       if (!mounted.current || requestSequence !== sequence.current) return;
-      applySnapshot(next, command.path !== "/api/imports");
+      applySnapshot(next, command.path !== '/api/imports');
       setPendingRetry(null);
       if (targetView) setView(targetView);
       setFeedback({
-        kind: "success",
+        kind: 'success',
         title: command.label,
         message:
-          command.path === "/api/publications"
+          command.path === '/api/publications'
             ? `Revision ${next.revision} is available as a frozen CSV and manifest.`
             : `The server returned revision ${next.revision}. Source rows remain preserved.`,
       });
@@ -119,33 +116,30 @@ export function App() {
         error instanceof RequestError
           ? error
           : new RequestError(
-              error instanceof Error
-                ? error.message
-                : "The request could not be completed.",
+              error instanceof Error ? error.message : 'The request could not be completed.',
             );
       if (failure.outcomeUnknown) {
         setPendingRetry(command);
         setFeedback({
-          kind: "unknown",
-          title: "The result is not yet confirmed.",
+          kind: 'unknown',
+          title: 'The result is not yet confirmed.',
           message: `${failure.message} Retry below to send the same request with its original key. Other changes are paused until the result is resolved.`,
         });
       } else {
         setPendingRetry(null);
         setFeedback({
-          kind: failure.status === 409 ? "conflict" : "error",
+          kind: failure.status === 409 ? 'conflict' : 'error',
           title:
             failure.status === 409
-              ? "The server rejected this request."
-              : "The change was not saved.",
+              ? 'The server rejected this request.'
+              : 'The change was not saved.',
           message: failure.message,
           details: failure.detail?.issues?.map((issue) => issue.message),
         });
       }
     } finally {
       mutationInFlight.current = false;
-      if (mounted.current && requestSequence === sequence.current)
-        setBusy(false);
+      if (mounted.current && requestSequence === sequence.current) setBusy(false);
     }
   }
 
@@ -159,20 +153,19 @@ export function App() {
       applySnapshot(next);
       setPendingRetry(null);
       setFeedback({
-        kind: "success",
-        title: "Current server revision loaded.",
+        kind: 'success',
+        title: 'Current server revision loaded.',
         message: `You are reviewing revision ${next.revision}. The edit form now shows the saved server values.`,
       });
     } catch (error: unknown) {
       if (!mounted.current || requestSequence !== sequence.current) return;
       setFeedback({
-        kind: "error",
-        title: "The current revision could not be loaded.",
-        message: error instanceof Error ? error.message : "Please try again.",
+        kind: 'error',
+        title: 'The current revision could not be loaded.',
+        message: error instanceof Error ? error.message : 'Please try again.',
       });
     } finally {
-      if (mounted.current && requestSequence === sequence.current)
-        setBusy(false);
+      if (mounted.current && requestSequence === sequence.current) setBusy(false);
     }
   }
 
@@ -188,13 +181,12 @@ export function App() {
     } catch (error: unknown) {
       if (!mounted.current || requestSequence !== sequence.current) return;
       setFeedback({
-        kind: "error",
-        title: "The workspace could not be opened.",
-        message: error instanceof Error ? error.message : "Please try again.",
+        kind: 'error',
+        title: 'The workspace could not be opened.',
+        message: error instanceof Error ? error.message : 'Please try again.',
       });
     } finally {
-      if (mounted.current && requestSequence === sequence.current)
-        setBusy(false);
+      if (mounted.current && requestSequence === sequence.current) setBusy(false);
     }
   }
 
@@ -207,26 +199,25 @@ export function App() {
       const next = await loadWorkspace();
       if (!mounted.current || requestSequence !== sequence.current) return;
       applySnapshot(next, false);
-      setView("review");
+      setView('review');
       setPendingRetry(null);
       setSessionNeedsReload(false);
       setFeedback({
-        kind: "success",
-        title: "The current session is confirmed.",
+        kind: 'success',
+        title: 'The current session is confirmed.',
         message:
-          "The workspace now matches this browser’s session. You can continue with the records shown below.",
+          'The workspace now matches this browser’s session. You can continue with the records shown below.',
       });
     } catch (error: unknown) {
       if (!mounted.current || requestSequence !== sequence.current) return;
       setFeedback({
-        kind: "unknown",
-        title: "The current session is still unconfirmed.",
-        message: `${error instanceof Error ? error.message : "Please try again."} The displayed workspace is stale. All changes remain paused until Reload session succeeds.`,
+        kind: 'unknown',
+        title: 'The current session is still unconfirmed.',
+        message: `${error instanceof Error ? error.message : 'Please try again.'} The displayed workspace is stale. All changes remain paused until Reload session succeeds.`,
       });
     } finally {
       mutationInFlight.current = false;
-      if (mounted.current && requestSequence === sequence.current)
-        setBusy(false);
+      if (mounted.current && requestSequence === sequence.current) setBusy(false);
     }
   }
 
@@ -234,14 +225,14 @@ export function App() {
     if (!workspace || pendingRetry || busy || sessionNeedsReload) return;
     void mutate(
       makeMutation(
-        "/api/imports",
-        "POST",
+        '/api/imports',
+        'POST',
         { fixtureId },
-        fixtureId === "mixed"
-          ? "The fictional import is ready for review."
-          : "The clean fictional fixture is loaded.",
+        fixtureId === 'mixed'
+          ? 'The fictional import is ready for review.'
+          : 'The clean fictional fixture is loaded.',
       ),
-      "review",
+      'review',
     );
   }
 
@@ -250,11 +241,11 @@ export function App() {
     await mutate(
       makeMutation(
         `/api/rows/${encodeURIComponent(row.id)}/decision`,
-        "PATCH",
+        'PATCH',
         command,
-        command.action === "accept"
-          ? "The row decision is saved."
-          : "The row is excluded with its reason.",
+        command.action === 'accept'
+          ? 'The row decision is saved.'
+          : 'The row is excluded with its reason.',
       ),
     );
   }
@@ -271,12 +262,12 @@ export function App() {
       return;
     void mutate(
       makeMutation(
-        "/api/publications",
-        "POST",
+        '/api/publications',
+        'POST',
         { expectedRevision: workspace.revision },
-        "This revision is published.",
+        'This revision is published.',
       ),
-      "publications",
+      'publications',
     );
   }
 
@@ -293,14 +284,14 @@ export function App() {
     void mutate(
       makeMutation(
         `/api/rows/${encodeURIComponent(workspace.rows[0].id)}/decision`,
-        "PATCH",
+        'PATCH',
         {
           expectedRevision: workspace.revision - 1,
-          action: "exclude",
+          action: 'exclude',
           reason:
-            "Deliberate stale-request demonstration; the revision check should reject this command.",
+            'Deliberate stale-request demonstration; the revision check should reject this command.',
         },
-        "Stale request unexpectedly completed.",
+        'Stale request unexpectedly completed.',
       ),
     );
   }
@@ -314,7 +305,7 @@ export function App() {
       const next = await createSandbox();
       if (!mounted.current || requestSequence !== sequence.current) return;
       applySnapshot(next, false);
-      setView("review");
+      setView('review');
       setPendingRetry(null);
       setSessionNeedsReload(false);
       setFeedback(null);
@@ -324,22 +315,18 @@ export function App() {
       setNewSandbox(false);
       setSessionNeedsReload(true);
       setFeedback({
-        kind: "unknown",
-        title: "A fresh sandbox was not confirmed.",
-        message: `${error instanceof Error ? error.message : "Please try again."} The browser may have switched sessions. The displayed workspace is stale and all changes are paused. Use Reload session before continuing.`,
+        kind: 'unknown',
+        title: 'A fresh sandbox was not confirmed.',
+        message: `${error instanceof Error ? error.message : 'Please try again.'} The browser may have switched sessions. The displayed workspace is stale and all changes are paused. Use Reload session before continuing.`,
       });
     } finally {
       mutationInFlight.current = false;
-      if (mounted.current && requestSequence === sequence.current)
-        setBusy(false);
+      if (mounted.current && requestSequence === sequence.current) setBusy(false);
     }
   }
 
-  const selectedRow =
-    workspace?.rows.find((row) => row.id === selectedId) ?? null;
-  const nextHeld = workspace?.rows.find(
-    (row) => held(row) && row.id !== selectedId,
-  );
+  const selectedRow = workspace?.rows.find((row) => row.id === selectedId) ?? null;
+  const nextHeld = workspace?.rows.find((row) => held(row) && row.id !== selectedId);
   const blocked = busy || pendingRetry !== null || sessionNeedsReload;
 
   return (
@@ -347,11 +334,7 @@ export function App() {
       <a className="skip-link" href="#main">
         Skip to workspace
       </a>
-      <Masthead
-        workspace={workspace}
-        busy={blocked}
-        onNew={() => setNewSandbox(true)}
-      />
+      <Masthead workspace={workspace} busy={blocked} onNew={() => setNewSandbox(true)} />
       <main id="main" tabIndex={-1}>
         {booting ? (
           <section className="loading-screen" role="status">
@@ -363,12 +346,12 @@ export function App() {
         {!booting && feedback ? (
           <section
             className={`feedback feedback-${feedback.kind}`}
-            role={feedback.kind === "success" ? "status" : "alert"}
-            aria-live={feedback.kind === "success" ? "polite" : "assertive"}
+            role={feedback.kind === 'success' ? 'status' : 'alert'}
+            aria-live={feedback.kind === 'success' ? 'polite' : 'assertive'}
           >
             <div>
               <span className="feedback-symbol" aria-hidden="true">
-                {feedback.kind === "success" ? "✓" : "!"}
+                {feedback.kind === 'success' ? '✓' : '!'}
               </span>
               <div>
                 <strong>{feedback.title}</strong>
@@ -390,11 +373,9 @@ export function App() {
                     disabled={busy}
                     onClick={() => void recoverSession()}
                   >
-                    {busy ? "Reloading session…" : "Reload session"}
+                    {busy ? 'Reloading session…' : 'Reload session'}
                   </button>
-                  <small>
-                    Reloads the workspace for this browser’s session.
-                  </small>
+                  <small>Reloads the workspace for this browser’s session.</small>
                 </>
               ) : pendingRetry ? (
                 <>
@@ -404,37 +385,23 @@ export function App() {
                     onClick={() =>
                       void mutate(
                         pendingRetry,
-                        pendingRetry.path === "/api/publications"
-                          ? "publications"
-                          : undefined,
+                        pendingRetry.path === '/api/publications' ? 'publications' : undefined,
                       )
                     }
                   >
                     Retry the same request
                   </button>
-                  <small>
-                    Retry keeps the original command and request key.
-                  </small>
+                  <small>Retry keeps the original command and request key.</small>
                 </>
-              ) : feedback.kind === "conflict" ? (
+              ) : feedback.kind === 'conflict' ? (
                 <>
-                  <button
-                    className="button compact"
-                    disabled={busy}
-                    onClick={() => void refresh()}
-                  >
+                  <button className="button compact" disabled={busy} onClick={() => void refresh()}>
                     Reload current revision
                   </button>
-                  <small>
-                    This replaces unsaved form changes with server values.
-                  </small>
+                  <small>This replaces unsaved form changes with server values.</small>
                 </>
               ) : workspace ? (
-                <button
-                  className="text-button"
-                  disabled={busy}
-                  onClick={() => setFeedback(null)}
-                >
+                <button className="text-button" disabled={busy} onClick={() => setFeedback(null)}>
                   Dismiss
                 </button>
               ) : (
@@ -450,27 +417,19 @@ export function App() {
           </section>
         ) : null}
         {!booting && workspace && !workspace.activeImport ? (
-          <Welcome busy={blocked} onImport={() => importFixture("mixed")} />
+          <Welcome busy={blocked} onImport={() => importFixture('mixed')} />
         ) : null}
         {!booting && workspace?.activeImport ? (
           <div className="workspace">
-            <Overview
-              workspace={workspace}
-              busy={blocked}
-              onPublish={publish}
-            />
+            <Overview workspace={workspace} busy={blocked} onPublish={publish} />
             <div className="workspace-body">
-              <WorkspaceNavigation
-                view={view}
-                onView={setView}
-                workspace={workspace}
-              />
+              <WorkspaceNavigation view={view} onView={setView} workspace={workspace} />
               <div className="workspace-context">
                 <span>
-                  <span className="context-dot" />{" "}
+                  <span className="context-dot" />{' '}
                   {sessionNeedsReload
-                    ? "Session unconfirmed · displayed records are stale"
-                    : "Source preserved · decisions stored on the server"}
+                    ? 'Session unconfirmed · displayed records are stale'
+                    : 'Source preserved · decisions stored on the server'}
                 </span>
                 <button
                   className="text-button"
@@ -481,7 +440,7 @@ export function App() {
                   Refresh saved revision <span aria-hidden="true">↻</span>
                 </button>
               </div>
-              {view === "review" ? (
+              {view === 'review' ? (
                 <div className="review-layout">
                   <ReviewQueue
                     rows={workspace.rows}
@@ -512,14 +471,14 @@ export function App() {
                     }
                   />
                 </div>
-              ) : view === "history" ? (
+              ) : view === 'history' ? (
                 <DecisionHistory events={workspace.events} />
               ) : (
                 <Publications
                   workspace={workspace}
                   busy={blocked}
                   onPublish={publish}
-                  onReview={() => setView("review")}
+                  onReview={() => setView('review')}
                 />
               )}
             </div>
@@ -530,7 +489,7 @@ export function App() {
             workspace={workspace}
             busy={blocked}
             onConflictDemo={demonstrateConflict}
-            onCleanImport={() => importFixture("clean")}
+            onCleanImport={() => importFixture('clean')}
           />
         ) : null}
       </main>

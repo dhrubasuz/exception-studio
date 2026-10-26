@@ -1,0 +1,6 @@
+# Author and maintainer: Dhruba Poudel
+node_modules/
+dist/
+data/
+coverage/
+pnpm-lock.yaml

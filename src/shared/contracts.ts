@@ -7,7 +7,15 @@ export type RowDecision = 'accepted' | 'unreviewed' | 'excluded';
 export type FixtureId = 'mixed' | 'clean';
 
 export interface ValidationIssue {
-  code: 'REQUIRED' | 'INVALID_REFERENCE' | 'DUPLICATE_REFERENCE' | 'INVALID_DATE' | 'DATE_ORDER' | 'INVALID_STATUS' | 'INVALID_MINUTES' | 'FIELD_TOO_LONG';
+  code:
+    | 'REQUIRED'
+    | 'INVALID_REFERENCE'
+    | 'DUPLICATE_REFERENCE'
+    | 'INVALID_DATE'
+    | 'DATE_ORDER'
+    | 'INVALID_STATUS'
+    | 'INVALID_MINUTES'
+    | 'FIELD_TOO_LONG';
   field: RecordField;
   message: string;
 }
@@ -40,7 +48,8 @@ export interface ImportSummary {
 }
 export interface WorkspaceEvent {
   id: number;
-  type: 'sandbox.created' | 'import.created' | 'row.accepted' | 'row.excluded' | 'dataset.published';
+  type:
+    'sandbox.created' | 'import.created' | 'row.accepted' | 'row.excluded' | 'dataset.published';
   createdAt: string;
   revision: number;
   message: string;
@@ -82,7 +91,13 @@ export interface WorkspaceSnapshot {
   summary: WorkspaceSummary;
   events: WorkspaceEvent[];
   publications: PublicationView[];
-  limits: { maxRows: 200; requestBytes: 65536; lifetimeHours: 24; maxPublications: 20; maxImports: 20 };
+  limits: {
+    maxRows: 200;
+    requestBytes: 65536;
+    lifetimeHours: 24;
+    maxPublications: 20;
+    maxImports: 20;
+  };
 }
 export interface ImportCommand {
   fixtureId: FixtureId;
@@ -94,7 +109,9 @@ export interface DecisionCommand {
   reason: string;
   changes?: Partial<OperationalRecord>;
 }
-export interface PublishCommand { expectedRevision: number }
+export interface PublishCommand {
+  expectedRevision: number;
+}
 export interface ApiErrorBody {
   error: {
     code: string;

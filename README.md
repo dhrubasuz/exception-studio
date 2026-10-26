@@ -111,9 +111,12 @@ The tests cover failure paths as well as the main workflow: invalid-correction r
 ```sh
 pnpm test:api
 pnpm test:ui
+pnpm format:check
 pnpm typecheck
 pnpm build
 ```
+
+Source formatting uses the pinned Prettier version in the lockfile. Run `pnpm format` before submitting a change; CI checks the same formatting rules alongside the behaviour tests and production build.
 
 ## Read the implementation
 

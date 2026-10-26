@@ -1,14 +1,14 @@
 // Author, creator and maintainer: Dhruba Poudel.
-import { useEffect, useRef, useState } from "react";
-import type { FormEvent } from "react";
-import { RECORD_FIELDS } from "../shared/contracts.js";
+import { useEffect, useRef, useState } from 'react';
+import type { FormEvent } from 'react';
+import { RECORD_FIELDS } from '../shared/contracts.js';
 import type {
   DecisionCommand,
   OperationalRecord,
   RowView,
   WorkspaceEvent,
   WorkspaceSnapshot,
-} from "../shared/contracts.js";
+} from '../shared/contracts.js';
 import {
   changedValues,
   dateTime,
@@ -18,8 +18,8 @@ import {
   rowState,
   shortId,
   summaryWidths,
-} from "./view";
-import type { RowFilter, WorkspaceView } from "./view";
+} from './view';
+import type { RowFilter, WorkspaceView } from './view';
 
 export function StudioMark() {
   return (
@@ -56,11 +56,7 @@ export function Masthead({
           Portfolio <span aria-hidden="true">↗</span>
         </a>
         {workspace ? (
-          <button
-            className="button button-quiet compact"
-            onClick={onNew}
-            disabled={busy}
-          >
+          <button className="button button-quiet compact" onClick={onNew} disabled={busy}>
             New sandbox
           </button>
         ) : null}
@@ -69,41 +65,29 @@ export function Masthead({
   );
 }
 
-export function Welcome({
-  busy,
-  onImport,
-}: {
-  busy: boolean;
-  onImport: () => void;
-}) {
+export function Welcome({ busy, onImport }: { busy: boolean; onImport: () => void }) {
   return (
     <section className="welcome" aria-labelledby="welcome-title">
       <div className="welcome-copy">
-        <span className="eyebrow">
-          A working system, with the evidence attached
-        </span>
+        <span className="eyebrow">A working system, with the evidence attached</span>
         <h1 id="welcome-title">
           Resolve the exception.
           <br />
           <em>Preserve the evidence.</em>
         </h1>
         <p className="lead">
-          Follow an imperfect service-data import through review, correction and
-          a frozen export. Every source row stays in view. Every decision
-          belongs to a revision.
+          Follow an imperfect service-data import through review, correction and a frozen export.
+          Every source row stays in view. Every decision belongs to a revision.
         </p>
         <button className="button" onClick={onImport} disabled={busy}>
-          {busy ? "Preparing your workspace…" : "Open the fictional import"}{" "}
+          {busy ? 'Preparing your workspace…' : 'Open the fictional import'}{' '}
           <span aria-hidden="true">↗</span>
         </button>
         <p className="welcome-note">
           No sign-up. No real records. An isolated sandbox lasting up to 24 hours.
         </p>
       </div>
-      <div
-        className="welcome-system"
-        aria-label="The workflow: source, review, frozen revision"
-      >
+      <div className="welcome-system" aria-label="The workflow: source, review, frozen revision">
         <div className="mini-title">THE WORKFLOW</div>
         <div className="workflow-block">
           <span className="step-index">01</span>
@@ -144,8 +128,8 @@ export function Welcome({
       <div className="welcome-caption">
         <span>ONE GUIDED SCENARIO</span>
         <p>
-          Load the sample. Inspect a held row. Correct or exclude it with a
-          reason. Publish when every exception has a decision.
+          Load the sample. Inspect a held row. Correct or exclude it with a reason. Publish when
+          every exception has a decision.
         </p>
       </div>
     </section>
@@ -168,20 +152,15 @@ export function Overview({
     <section className="overview" aria-labelledby="workspace-title">
       <div className="section-top">
         <div>
-          <span className="eyebrow">
-            Import workspace / {shortId(workspace.session.id)}
-          </span>
+          <span className="eyebrow">Import workspace / {shortId(workspace.session.id)}</span>
           <h1 id="workspace-title">
             Make the exception <em>explainable.</em>
           </h1>
-          <p>
-            {workspace.activeImport?.name ??
-              "A separate space for fictional records."}
-          </p>
+          <p>{workspace.activeImport?.name ?? 'A separate space for fictional records.'}</p>
         </div>
         <div className="revision-stamp">
           <span>DATASET REVISION</span>
-          <strong>{String(workspace.revision).padStart(2, "0")}</strong>
+          <strong>{String(workspace.revision).padStart(2, '0')}</strong>
           <small>Checked on every decision</small>
         </div>
       </div>
@@ -199,11 +178,7 @@ export function Overview({
         <div className="metric held">
           <span>Held for review</span>
           <strong>{summary.held}</strong>
-          <small>
-            {summary.held
-              ? "A decision is still needed"
-              : "No unresolved exceptions"}
-          </small>
+          <small>{summary.held ? 'A decision is still needed' : 'No unresolved exceptions'}</small>
         </div>
         <div className="metric excluded">
           <span>Excluded</span>
@@ -215,9 +190,8 @@ export function Overview({
         <div className="reconciliation-copy">
           <span className="micro-label">ROW RECONCILIATION</span>
           <strong>
-            {summary.total} source <span aria-hidden="true">=</span>{" "}
-            {summary.accepted} accepted <span aria-hidden="true">+</span>{" "}
-            {summary.held} held <span aria-hidden="true">+</span>{" "}
+            {summary.total} source <span aria-hidden="true">=</span> {summary.accepted} accepted{' '}
+            <span aria-hidden="true">+</span> {summary.held} held <span aria-hidden="true">+</span>{' '}
             {summary.excluded} excluded
           </strong>
         </div>
@@ -233,14 +207,10 @@ export function Overview({
         <div className="publish-action">
           <p>
             {canPublish
-              ? "Every source row is accounted for. Freeze this revision when you are ready."
-              : `Resolve the ${summary.held} held ${summary.held === 1 ? "row" : "rows"} before publishing.`}
+              ? 'Every source row is accounted for. Freeze this revision when you are ready.'
+              : `Resolve the ${summary.held} held ${summary.held === 1 ? 'row' : 'rows'} before publishing.`}
           </p>
-          <button
-            className="button compact"
-            onClick={onPublish}
-            disabled={busy || !canPublish}
-          >
+          <button className="button compact" onClick={onPublish} disabled={busy || !canPublish}>
             Freeze &amp; publish <span aria-hidden="true">↗</span>
           </button>
         </div>
@@ -261,20 +231,20 @@ export function WorkspaceNavigation({
   return (
     <nav className="workspace-nav" aria-label="Workspace views">
       <button
-        onClick={() => onView("review")}
-        aria-current={view === "review" ? "page" : undefined}
+        onClick={() => onView('review')}
+        aria-current={view === 'review' ? 'page' : undefined}
       >
         Review queue <span>{workspace.summary.held}</span>
       </button>
       <button
-        onClick={() => onView("history")}
-        aria-current={view === "history" ? "page" : undefined}
+        onClick={() => onView('history')}
+        aria-current={view === 'history' ? 'page' : undefined}
       >
         Decision history <span>{workspace.events.length}</span>
       </button>
       <button
-        onClick={() => onView("publications")}
-        aria-current={view === "publications" ? "page" : undefined}
+        onClick={() => onView('publications')}
+        aria-current={view === 'publications' ? 'page' : undefined}
       >
         Frozen exports <span>{workspace.publications.length}</span>
       </button>
@@ -293,14 +263,14 @@ export function ReviewQueue({
   disabled: boolean;
   onSelect: (id: string) => void;
 }) {
-  const [filter, setFilter] = useState<RowFilter>("held");
-  const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState<RowFilter>('held');
+  const [query, setQuery] = useState('');
   const visibleRows = filterRows(rows, filter, query);
   const filters: { id: RowFilter; label: string }[] = [
-    { id: "held", label: "Held" },
-    { id: "all", label: "All rows" },
-    { id: "accepted", label: "Accepted" },
-    { id: "excluded", label: "Excluded" },
+    { id: 'held', label: 'Held' },
+    { id: 'all', label: 'All rows' },
+    { id: 'accepted', label: 'Accepted' },
+    { id: 'excluded', label: 'Excluded' },
   ];
   return (
     <section className="queue-panel" aria-labelledby="queue-title">
@@ -314,11 +284,7 @@ export function ReviewQueue({
         </span>
       </div>
       <div className="queue-controls">
-        <div
-          className="filter-group"
-          role="group"
-          aria-label="Filter records by decision"
-        >
+        <div className="filter-group" role="group" aria-label="Filter records by decision">
           {filters.map((item) => (
             <button
               key={item.id}
@@ -345,11 +311,11 @@ export function ReviewQueue({
           return (
             <li key={row.id}>
               <button
-                className={`queue-record ${selectedId === row.id ? "selected" : ""}`}
+                className={`queue-record ${selectedId === row.id ? 'selected' : ''}`}
                 disabled={disabled}
                 onClick={() => onSelect(row.id)}
-                aria-current={selectedId === row.id ? "true" : undefined}
-                aria-label={`Inspect ${row.current.reference || `source line ${row.lineNumber}`}, ${state}${row.issues.length ? `, ${row.issues.length} validation ${row.issues.length === 1 ? "issue" : "issues"}` : ""}`}
+                aria-current={selectedId === row.id ? 'true' : undefined}
+                aria-label={`Inspect ${row.current.reference || `source line ${row.lineNumber}`}, ${state}${row.issues.length ? `, ${row.issues.length} validation ${row.issues.length === 1 ? 'issue' : 'issues'}` : ''}`}
               >
                 <div className="record-top">
                   <strong>
@@ -358,21 +324,20 @@ export function ReviewQueue({
                     )}
                   </strong>
                   <span className={`state-pill ${state}`}>
-                    {state === "held" ? "Review needed" : state}
+                    {state === 'held' ? 'Review needed' : state}
                   </span>
                 </div>
                 <div className="record-meta">
-                  <span>{row.current.team || "No team supplied"}</span>
+                  <span>{row.current.team || 'No team supplied'}</span>
                   <span>Source line {row.lineNumber}</span>
                   {row.changedFields.length ? (
                     <span>
-                      {row.changedFields.length}{" "}
-                      {row.changedFields.length === 1 ? "field" : "fields"}{" "}
-                      changed
+                      {row.changedFields.length}{' '}
+                      {row.changedFields.length === 1 ? 'field' : 'fields'} changed
                     </span>
                   ) : null}
                 </div>
-                {state === "held" ? (
+                {state === 'held' ? (
                   <div className="record-issues">
                     {row.issues.length ? (
                       [...new Set(row.issues.map((issue) => issue.message))]
@@ -380,8 +345,7 @@ export function ReviewQueue({
                         .map((message) => <span key={message}>{message}</span>)
                     ) : (
                       <span>
-                        Validation is clear. Confirm the original exception with
-                        a review decision.
+                        Validation is clear. Confirm the original exception with a review decision.
                       </span>
                     )}
                   </div>
@@ -400,21 +364,19 @@ export function ReviewQueue({
             ✓
           </span>
           <h3>
-            {filter === "held" && !query
-              ? "The held queue is clear."
-              : "No rows in this view."}
+            {filter === 'held' && !query ? 'The held queue is clear.' : 'No rows in this view.'}
           </h3>
           <p>
-            {filter === "held" && !query
-              ? "Every exception has a decision. Inspect all rows or freeze the current revision."
-              : "Try another filter or a shorter search."}
+            {filter === 'held' && !query
+              ? 'Every exception has a decision. Inspect all rows or freeze the current revision.'
+              : 'Try another filter or a shorter search.'}
           </p>
-          {filter !== "all" || query ? (
+          {filter !== 'all' || query ? (
             <button
               className="text-button"
               onClick={() => {
-                setFilter("all");
-                setQuery("");
+                setFilter('all');
+                setQuery('');
               }}
             >
               Show all source rows <span aria-hidden="true">↗</span>
@@ -442,69 +404,61 @@ export function RowInspector({
   const [draft, setDraft] = useState<OperationalRecord | null>(() =>
     row ? { ...row.current } : null,
   );
-  const [reason, setReason] = useState("");
-  const [formMessage, setFormMessage] = useState("");
+  const [reason, setReason] = useState('');
+  const [formMessage, setFormMessage] = useState('');
   const reasonInput = useRef<HTMLTextAreaElement>(null);
   if (!row || !draft)
     return (
       <aside className="inspector inspector-empty">
         <span className="micro-label">02 / DECIDE</span>
         <h2>Choose a source row.</h2>
-        <p>
-          Inspect what arrived, review the current values and record a reason
-          for the decision.
-        </p>
+        <p>Inspect what arrived, review the current values and record a reason for the decision.</p>
       </aside>
     );
   const currentState = rowState(row);
   const changes = changedValues(row.current, draft);
-  async function decide(action: DecisionCommand["action"]) {
+  async function decide(action: DecisionCommand['action']) {
     if (disabled || !row || !draft) return;
     if (reason.trim().length < 10) {
-      setFormMessage("Give a specific reason of at least 10 characters.");
+      setFormMessage('Give a specific reason of at least 10 characters.');
       reasonInput.current?.focus();
       return;
     }
-    setFormMessage("");
+    setFormMessage('');
     await onDecision(row, {
       expectedRevision: revision,
       action,
       reason: reason.trim(),
-      ...(action === "accept" ? { changes } : {}),
+      ...(action === 'accept' ? { changes } : {}),
     });
   }
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    void decide("accept");
+    void decide('accept');
   }
   return (
     <aside className="inspector" aria-labelledby="inspector-title">
       <div className="panel-heading">
         <div>
           <span className="micro-label">02 / DECIDE</span>
-          <h2 id="inspector-title">
-            {row.current.reference || `Source line ${row.lineNumber}`}
-          </h2>
+          <h2 id="inspector-title">{row.current.reference || `Source line ${row.lineNumber}`}</h2>
         </div>
         <span className={`state-pill ${currentState}`}>
-          {currentState === "held" ? "Review needed" : currentState}
+          {currentState === 'held' ? 'Review needed' : currentState}
         </span>
       </div>
       <p className="inspector-intro">
-        Source line {row.lineNumber} <span aria-hidden="true">·</span> Editing
-        against revision <strong>{revision}</strong>
+        Source line {row.lineNumber} <span aria-hidden="true">·</span> Editing against revision{' '}
+        <strong>{revision}</strong>
       </p>
       {row.issues.length ? (
         <div className="validation-note">
           <strong>
-            {row.issues.length} validation{" "}
-            {row.issues.length === 1 ? "issue" : "issues"}
+            {row.issues.length} validation {row.issues.length === 1 ? 'issue' : 'issues'}
           </strong>
           <ul>
             {row.issues.map((issue, index) => (
-              <li key={`${issue.field}-${issue.code}-${index}`}>
-                {issue.message}
-              </li>
+              <li key={`${issue.field}-${issue.code}-${index}`}>{issue.message}</li>
             ))}
           </ul>
         </div>
@@ -513,16 +467,15 @@ export function RowInspector({
           <strong>Current values pass the data rules.</strong>
           <p>
             {row.reviewed
-              ? "The saved decision and original values remain available below."
-              : "An original exception still needs an explicit review decision."}
+              ? 'The saved decision and original values remain available below.'
+              : 'An original exception still needs an explicit review decision.'}
           </p>
         </div>
       )}
       <form onSubmit={submit} className="review-form">
         <fieldset disabled={disabled}>
           <legend className="sr-only">
-            Review current values for{" "}
-            {row.current.reference || `source line ${row.lineNumber}`}
+            Review current values for {row.current.reference || `source line ${row.lineNumber}`}
           </legend>
           <div className="field-grid">
             {RECORD_FIELDS.map((field) => (
@@ -535,15 +488,13 @@ export function RowInspector({
                 </span>
                 <input
                   type="text"
-                  inputMode={field === "minutes" ? "numeric" : "text"}
+                  inputMode={field === 'minutes' ? 'numeric' : 'text'}
                   name={field}
                   aria-label={FIELD_LABELS[field]}
                   value={draft[field]}
                   onChange={(event) =>
                     setDraft((previous) =>
-                      previous
-                        ? { ...previous, [field]: event.target.value }
-                        : previous,
+                      previous ? { ...previous, [field]: event.target.value } : previous,
                     )
                   }
                   maxLength={200}
@@ -552,7 +503,7 @@ export function RowInspector({
                   spellCheck={false}
                 />
                 <small id={`source-${field}`} className="original-value">
-                  Source: <code>{row.original[field] || "(empty)"}</code>
+                  Source: <code>{row.original[field] || '(empty)'}</code>
                 </small>
               </label>
             ))}
@@ -574,8 +525,8 @@ export function RowInspector({
             />
           </label>
           <p className="field-guidance" id="reason-guidance">
-            Use a fictional review note. This is recorded with the decision; the
-            source values are preserved.
+            Use a fictional review note. This is recorded with the decision; the source values are
+            preserved.
           </p>
           {formMessage ? (
             <p className="form-error" role="alert">
@@ -589,7 +540,7 @@ export function RowInspector({
             <button
               className="button button-outline"
               type="button"
-              onClick={() => void decide("exclude")}
+              onClick={() => void decide('exclude')}
             >
               Exclude with reason
             </button>
@@ -603,18 +554,13 @@ export function RowInspector({
         </div>
       ) : null}
       {onNext ? (
-        <button
-          className="next-record"
-          type="button"
-          onClick={onNext}
-          disabled={disabled}
-        >
+        <button className="next-record" type="button" onClick={onNext} disabled={disabled}>
           Inspect the next held row <span aria-hidden="true">→</span>
         </button>
       ) : null}
       <p className="inspector-footnote">
-        A saved decision updates this sandbox. It does not establish an
-        independent approver or create a production import.
+        A saved decision updates this sandbox. It does not establish an independent approver or
+        create a production import.
       </p>
     </aside>
   );
@@ -631,9 +577,8 @@ export function DecisionHistory({ events }: { events: WorkspaceEvent[] }) {
         <span className="count-note">{events.length} ordered events</span>
       </div>
       <p className="panel-intro">
-        Follow the import, corrections and publications in this sandbox. Actor
-        identity is not independently verified; this is an application history,
-        not a tamper-proof audit service.
+        Follow the import, corrections and publications in this sandbox. Actor identity is not
+        independently verified; this is an application history, not a tamper-proof audit service.
       </p>
       <ol className="timeline">
         {events
@@ -642,24 +587,18 @@ export function DecisionHistory({ events }: { events: WorkspaceEvent[] }) {
           .map((event) => (
             <li key={event.id}>
               <div
-                className={`timeline-dot ${event.type === "dataset.published" ? "published" : ""}`}
+                className={`timeline-dot ${event.type === 'dataset.published' ? 'published' : ''}`}
                 aria-hidden="true"
               />
               <div className="event-heading">
                 <strong>{event.message}</strong>
-                <span className="event-revision">
-                  Revision {event.revision}
-                </span>
+                <span className="event-revision">Revision {event.revision}</span>
               </div>
               <div className="event-meta">
-                <time dateTime={event.createdAt}>
-                  {dateTime(event.createdAt)}
-                </time>
+                <time dateTime={event.createdAt}>{dateTime(event.createdAt)}</time>
                 <span>Event {event.id}</span>
               </div>
-              {event.reason ? (
-                <p className="event-reason">“{event.reason}”</p>
-              ) : null}
+              {event.reason ? <p className="event-reason">“{event.reason}”</p> : null}
               {event.changes && Object.keys(event.changes).length ? (
                 <dl className="event-changes">
                   {RECORD_FIELDS.flatMap((field) => {
@@ -668,9 +607,9 @@ export function DecisionHistory({ events }: { events: WorkspaceEvent[] }) {
                       <div key={field}>
                         <dt>{FIELD_LABELS[field]}</dt>
                         <dd>
-                          <code>{change.before || "(empty)"}</code>
+                          <code>{change.before || '(empty)'}</code>
                           <span aria-hidden="true"> → </span>
-                          <code>{change.after || "(empty)"}</code>
+                          <code>{change.after || '(empty)'}</code>
                         </dd>
                       </div>
                     ) : (
@@ -698,24 +637,21 @@ export function Publications({
   onReview: () => void;
 }) {
   return (
-    <section
-      className="publications-panel"
-      aria-labelledby="publications-title"
-    >
+    <section className="publications-panel" aria-labelledby="publications-title">
       <div className="panel-heading">
         <div>
           <span className="micro-label">EXACT BYTES. NAMED REVISION.</span>
           <h2 id="publications-title">Frozen exports</h2>
         </div>
         <span className="count-note">
-          {workspace.publications.length}{" "}
-          {workspace.publications.length === 1 ? "publication" : "publications"}
+          {workspace.publications.length}{' '}
+          {workspace.publications.length === 1 ? 'publication' : 'publications'}
         </span>
       </div>
       <p className="panel-intro">
-        A publication stores the accepted CSV and its manifest together. Later
-        corrections do not rewrite an earlier download. Save files you want to
-        retain before the fictional sandbox expires.
+        A publication stores the accepted CSV and its manifest together. Later corrections do not
+        rewrite an earlier download. Save files you want to retain before the fictional sandbox
+        expires.
       </p>
       {workspace.publications.length ? (
         <div className="publication-grid">
@@ -728,20 +664,13 @@ export function Publications({
                   <span className="state-pill accepted">Frozen snapshot</span>
                   <span>{dateTime(publication.createdAt)}</span>
                 </div>
-                <h3>
-                  Revision {String(publication.revision).padStart(2, "0")}
-                </h3>
+                <h3>Revision {String(publication.revision).padStart(2, '0')}</h3>
                 <p className="publication-counts">
-                  <strong>{publication.acceptedRows}</strong> accepted rows{" "}
-                  <span aria-hidden="true">·</span> {publication.excludedRows}{" "}
-                  excluded
+                  <strong>{publication.acceptedRows}</strong> accepted rows{' '}
+                  <span aria-hidden="true">·</span> {publication.excludedRows} excluded
                 </p>
                 <div className="publication-links">
-                  <a
-                    className="button compact"
-                    href={downloadPath(publication.csvUrl)}
-                    download
-                  >
+                  <a className="button compact" href={downloadPath(publication.csvUrl)} download>
                     Download CSV <span aria-hidden="true">↓</span>
                   </a>
                   <a
@@ -756,13 +685,11 @@ export function Publications({
                   <summary>Inspect the SHA-256 digest</summary>
                   <code>{publication.dataSha256}</code>
                   <p>
-                    The manifest also records the source hash, dataset revision,
-                    author, counts and byte length.
+                    The manifest also records the source hash, dataset revision, author, counts and
+                    byte length.
                   </p>
                 </details>
-                <small className="publication-id">
-                  Publication {shortId(publication.id, 16)}
-                </small>
+                <small className="publication-id">Publication {shortId(publication.id, 16)}</small>
               </article>
             ))}
         </div>
@@ -776,7 +703,7 @@ export function Publications({
             <p>
               {workspace.summary.held
                 ? `${workspace.summary.held} rows are still held. Resolve their exceptions to create the first publication.`
-                : "The held queue is clear. Freeze this revision to inspect its CSV and manifest."}
+                : 'The held queue is clear. Freeze this revision to inspect its CSV and manifest.'}
             </p>
           </div>
           {workspace.summary.held ? (
@@ -819,8 +746,7 @@ export function UnderTheHood({
       </div>
       <details>
         <summary>
-          Inspect the architecture and safeguards{" "}
-          <span aria-hidden="true">+</span>
+          Inspect the architecture and safeguards <span aria-hidden="true">+</span>
         </summary>
         <div
           className="architecture-flow"
@@ -845,9 +771,7 @@ export function UnderTheHood({
           <div>
             <span>03 / STATE</span>
             <strong>SQL transactions</strong>
-            <p>
-              Separate source values, revisions, decisions and export bytes.
-            </p>
+            <p>Separate source values, revisions, decisions and export bytes.</p>
           </div>
         </div>
         <div className="engineering-grid">
@@ -855,32 +779,32 @@ export function UnderTheHood({
             <span>01</span>
             <h3>The source stays intact.</h3>
             <p>
-              Corrections are stored separately. Reconciliation accounts for
-              accepted, held and excluded rows.
+              Corrections are stored separately. Reconciliation accounts for accepted, held and
+              excluded rows.
             </p>
           </article>
           <article>
             <span>02</span>
             <h3>Stale edits are rejected.</h3>
             <p>
-              Each decision includes its expected dataset revision. A
-              conflicting request receives HTTP 409.
+              Each decision includes its expected dataset revision. A conflicting request receives
+              HTTP 409.
             </p>
           </article>
           <article>
             <span>03</span>
             <h3>A retry keeps its key.</h3>
             <p>
-              Successful mutations are recorded against a request key and body,
-              preventing duplicate decisions after a retry.
+              Successful mutations are recorded against a request key and body, preventing duplicate
+              decisions after a retry.
             </p>
           </article>
           <article>
             <span>04</span>
             <h3>A publication is a snapshot.</h3>
             <p>
-              CSV bytes and a SHA-256 manifest are frozen together. New
-              revisions leave older downloads unchanged.
+              CSV bytes and a SHA-256 manifest are frozen together. New revisions leave older
+              downloads unchanged.
             </p>
           </article>
         </div>
@@ -889,8 +813,8 @@ export function UnderTheHood({
             <div>
               <strong>Try the safeguards.</strong>
               <p>
-                The stale-request example deliberately sends an older revision;
-                it should be rejected without changing a row.
+                The stale-request example deliberately sends an older revision; it should be
+                rejected without changing a row.
               </p>
             </div>
             <button
@@ -900,20 +824,15 @@ export function UnderTheHood({
             >
               Demonstrate a stale request
             </button>
-            <button
-              className="text-button"
-              onClick={onCleanImport}
-              disabled={busy}
-            >
+            <button className="text-button" onClick={onCleanImport} disabled={busy}>
               Load the clean fixture <span aria-hidden="true">↗</span>
             </button>
           </div>
         ) : null}
         <p className="scope-note">
-          Public mode accepts bundled fictional fixtures only. This is a
-          portfolio demonstration with anonymous sandbox sessions, not
-          enterprise authentication, organisational approval or a production
-          data service.
+          Public mode accepts bundled fictional fixtures only. This is a portfolio demonstration
+          with anonymous sandbox sessions, not enterprise authentication, organisational approval or
+          a production data service.
         </p>
       </details>
     </section>
@@ -950,20 +869,15 @@ export function SandboxDialog({
       <span className="eyebrow">A separate fictional workspace</span>
       <h2 id="sandbox-dialog-title">Start a fresh sandbox?</h2>
       <p>
-        Your browser will switch to a new empty workspace. Download any files
-        you want to keep first; the previous sandbox continues towards its
-        normal expiry.
+        Your browser will switch to a new empty workspace. Download any files you want to keep
+        first; the previous sandbox continues towards its normal expiry.
       </p>
       <div className="dialog-actions">
-        <button
-          className="button button-outline"
-          onClick={onCancel}
-          disabled={busy}
-        >
+        <button className="button button-outline" onClick={onCancel} disabled={busy}>
           Keep this workspace
         </button>
         <button className="button" onClick={onConfirm} disabled={busy}>
-          {busy ? "Creating…" : "Start fresh"}
+          {busy ? 'Creating…' : 'Start fresh'}
         </button>
       </div>
     </dialog>
@@ -978,11 +892,7 @@ export function Footer({ workspace }: { workspace: WorkspaceSnapshot | null }) {
         <span>Original full-stack portfolio demonstration</span>
       </div>
       <div className="footer-links">
-        <a
-          href="https://github.com/dhrubasuz/exception-studio"
-          target="_blank"
-          rel="noreferrer"
-        >
+        <a href="https://github.com/dhrubasuz/exception-studio" target="_blank" rel="noreferrer">
           Read the implementation <span aria-hidden="true">↗</span>
         </a>
         <a href="https://about.dhrub.com.np/">
@@ -990,11 +900,9 @@ export function Footer({ workspace }: { workspace: WorkspaceSnapshot | null }) {
         </a>
       </div>
       <p>
-        {workspace ? (
-          <>This sandbox expires {dateTime(workspace.session.expiresAt)}. </>
-        ) : null}
-        A restart or redeployment may reset this demonstration. Use fictional information only. No independently verified approval
-        identity is established.
+        {workspace ? <>This sandbox expires {dateTime(workspace.session.expiresAt)}. </> : null}A
+        restart or redeployment may reset this demonstration. Use fictional information only. No
+        independently verified approval identity is established.
       </p>
     </footer>
   );
