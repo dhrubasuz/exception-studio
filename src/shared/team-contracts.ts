@@ -152,7 +152,7 @@ export interface ReplayCommand {
  * POST /api/team/jobs/:id/approve ApproveCommand -> TeamSnapshot (approver; Idempotency-Key).
  * POST /api/team/jobs/:id/replay ReplayCommand -> TeamSnapshot (analyst; Idempotency-Key).
  * GET /api/team/jobs/:id/trace.json -> {author,creator,job,events}; scoped to actor workspace.
- * The worker calls signed loopback HTTP sandbox source/destination routes; never arbitrary URLs.
+ * The worker calls authenticated local HTTP sandbox source/destination routes; never arbitrary URLs.
  * GET /api/team/sandbox/:id/source; POST /api/team/sandbox/:id/destination {eventId,payload}.
  * No external identity verification, arbitrary uploads, real clients, financial data or external API keys.
  */

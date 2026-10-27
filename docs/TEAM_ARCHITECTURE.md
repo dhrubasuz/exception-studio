@@ -10,7 +10,7 @@ React interface ── same-origin JSON ── Node HTTP API ── SQLite trans
                                                               │
                                                       background worker
                                                               │
-                                                   authenticated loopback HTTP
+                                                   authenticated local HTTP
                                                               │
                                           fixed source + destination sandbox
                                                      receipt deduplication
@@ -44,7 +44,7 @@ Bounded exponential retries respect the sandbox's `Retry-After`. Schema errors r
 
 ## Side effects and uncertainty
 
-Actual loopback HTTP source/destination routes require a process-generated secret. No arbitrary connector URLs are accepted. Original source snapshots/hash remain separate from corrections.
+Actual local HTTP source/destination routes require a process-generated secret. No arbitrary connector URLs are accepted. Original source snapshots/hash remain separate from corrections.
 
 A stable source event ID and unique workspace/event receipt make destination writes idempotent. The lost-response fixture commits then delays its reply past the deadline. Retrying the same event/payload returns the existing receipt. This is at-least-once attempt handling with deduplicated sandbox effects, not a universal exactly-once guarantee.
 
@@ -53,3 +53,9 @@ A stable source event ID and unique workspace/event receipt make destination wri
 Attempts retain phase, number/generation, duration, outcome, HTTP status and trace/span IDs. HTTP durations are measured; an interrupted lease recovered after restart records the configured lease duration as an estimate. Events retain actor/reason; receipts retain a payload hash. Trace downloads include the job, attempts and related events. p95 uses nearest rank over recorded durations, including failures and lease estimates; it is not browser response time or business savings.
 
 SQLite WAL, one Node process and bounded fictional workspaces make the lab reproducible. There is no distributed broker, external connector, verified organisational identity, OpenTelemetry installation or backup service. See [security scope](../SECURITY.md).
+
+## Managed-host transport
+
+The worker is created after the HTTP server starts and uses `server.address()`. A normal local server exposes a TCP port. Managed hosting can replace the requested port with a Unix socket; Node's HTTP client supports `socketPath` for that same bound listener. No additional port is opened and the private authentication header is still required. Connector deadlines include connecting and reading the full bounded response body.
+
+This follows Node's [HTTP client socket options](https://nodejs.org/docs/latest-v24.x/api/http.html#httprequestoptions-callback) and handles [Passenger's reverse port binding](https://www.phusionpassenger.com/docs/advanced_guides/in_depth/node/reverse_port_binding.html). Hostinger [does not guarantee always-running workers](https://www.hostinger.com/support/hostinger-node-js-limits-for-web-and-cloud-plans/). Queue state and leases survive a process replacement when the database file survives; execution resumes when the web process is running. The public demo does not promise unattended, always-on processing. Active job polling keeps progress visible during the walkthrough.

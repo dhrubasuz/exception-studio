@@ -223,7 +223,7 @@ export class StudioStore {
       const token = randomBytes(32).toString('base64url');
       const id = randomUUID(),
         createdAt = this.timestamp(),
-        expiresAt = new Date(this.now().getTime() + LIFETIME_MS).toISOString();
+        expiresAt = new Date(Date.parse(createdAt) + LIFETIME_MS).toISOString();
       this.db
         .prepare('INSERT INTO sandboxes (id,token_hash,created_at,expires_at) VALUES (?,?,?,?)')
         .run(id, sha256(token), createdAt, expiresAt);

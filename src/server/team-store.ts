@@ -364,7 +364,7 @@ export class TeamStore {
     this.cleanupExpired();
     const workspaceId = randomUUID(),
       createdAt = this.time(),
-      expiresAt = new Date(this.now().getTime() + LIFETIME).toISOString();
+      expiresAt = new Date(Date.parse(createdAt) + LIFETIME).toISOString();
     const credentials: DemoCredential[] = [
       {
         username: 'avery.analyst',

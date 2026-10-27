@@ -12,7 +12,7 @@ Exception Studio is a public portfolio lab using **fictional data and fictional 
 - Browser mutations require an allowed `Origin`, JSON content type and bounded body. No wildcard CORS. Sign-in and workspace creation have additional request limits.
 - State, audit entries and command retry records commit transactionally. Human commands check the current job revision; altered reuse of an idempotency key returns `409`.
 - Worker claims have expiring leases and random fencing tokens. A stale worker cannot complete a reclaimed attempt. Source snapshots are immutable after capture. Retries and replay generations are bounded.
-- The worker only accepts loopback base URLs and fixed sandbox routes, protected by a process-generated secret and constant-time comparison. Visitors cannot choose an arbitrary connector URL or configure external credentials.
+- The worker uses a loopback TCP address or the HTTP server's actual bound local socket, with fixed sandbox routes protected by a process-generated secret and constant-time comparison. Visitors cannot choose an arbitrary connector URL or configure external credentials.
 - Destination receipts deduplicate workspace/event pairs and retain a payload hash. A fixture deliberately commits before delaying its response, testing retry safety after an uncertain result.
 - Static serving is confined to built assets, denying dot paths and common database/key-file extensions. CSP restricts scripts and connections to the same origin; framing and MIME sniffing are restricted. User text renders as text.
 - Bounds: 24-hour workspaces; 200 active workspaces; 40 jobs/workspace; three attempts per phase/generation; three source generations; 1,000 commands; 100 successful logins and the latest 20 sessions/account.
@@ -27,7 +27,7 @@ Automated tests exercise specified boundaries, including Classic regressions. Th
 
 **Delivery safety depends on destination behaviour.** This sandbox deduplicates stable event IDs. External APIs may not. This release does not connect to real business/payment APIs or guarantee global exactly-once delivery.
 
-**Persistence depends on hosting storage.** Restart recovery needs the same SQLite file. Redeployments or storage replacement may reset the demo. Backups, disaster recovery and production migrations are not included. Run one Node instance; this is not a distributed queue.
+**Persistence depends on hosting storage.** Restart recovery needs the same SQLite file. Redeployments or storage replacement may reset the demo. Managed hosting may stop the web process; queue processing resumes while it runs, without an always-on guarantee. Backups, disaster recovery and production migrations are not included. Run one Node instance; this is not a distributed queue.
 
 **Expiry is not secure erasure.** Access ends after 24 hours; creation/periodic cleanup removes rows. Journals, free pages, infrastructure logs or backups may retain information. No secure-deletion guarantee is made.
 

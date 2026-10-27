@@ -203,6 +203,52 @@ describe('Team edition account boundary', () => {
 });
 
 describe('Team edition commands and evidence', () => {
+  it('reveals older server-recorded activity in accessible batches without hiding its total', async () => {
+    const events = Array.from({ length: 25 }, (_, index) => ({
+      id: 25 - index,
+      type: 'job.reviewed',
+      jobId: 'job-a',
+      actorName: 'Alex Morgan',
+      actorRole: 'analyst',
+      message: 'Reviewed fictional work order decision ' + (25 - index),
+      createdAt: new Date(Date.UTC(2026, 9, 28, 1, 25 - index)).toISOString(),
+      traceId: 'trace-demo-123',
+    }));
+    fetchMock.mockResolvedValue(json(workspace([], { events })));
+    render(<TeamApp />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Activity' }));
+    expect(screen.getByText('Latest 12 of 25 events')).toBeTruthy();
+    expect(screen.queryByText('Reviewed fictional work order decision 13')).toBeNull();
+    const showMore = screen.getByRole('button', { name: 'Show more events' });
+    expect(document.getElementById(showMore.getAttribute('aria-controls') || '')).toBeTruthy();
+    fireEvent.click(showMore);
+    expect(screen.getByText('Latest 24 of 25 events')).toBeTruthy();
+    expect(screen.getByText('Reviewed fictional work order decision 13')).toBeTruthy();
+    expect(screen.queryByText('Reviewed fictional work order decision 1')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Show more events' }));
+    expect(screen.getByText('Latest 25 of 25 events')).toBeTruthy();
+    expect(screen.getByText('Reviewed fictional work order decision 1')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Show more events' })).toBeNull();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('discloses the server history cap when the latest 500 events are returned', async () => {
+    const events = Array.from({ length: 500 }, (_, index) => ({
+      id: 500 - index,
+      type: 'job.reviewed',
+      jobId: 'job-a',
+      actorName: 'Alex Morgan',
+      actorRole: 'analyst',
+      message: 'Fictional review ' + (500 - index),
+      createdAt: '2026-10-28T01:00:00.000Z',
+      traceId: 'trace-demo-123',
+    }));
+    fetchMock.mockResolvedValue(json(workspace([], { events })));
+    render(<TeamApp />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Activity' }));
+    expect(screen.getByText('Latest 12 of 500 events')).toBeTruthy();
+    expect(screen.getByText(/at most the latest 500 workspace events/)).toBeTruthy();
+  });
   it('blocks malformed references and out-of-range effort before sending a review', async () => {
     fetchMock
       .mockResolvedValueOnce(json(workspace([job()])))

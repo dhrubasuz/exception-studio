@@ -1,6 +1,6 @@
 # Team edition: HTTP verification
 
-Author and maintainer: **Dhruba Poudel**  
+Author and maintainer: **Dhruba Poudel**
 Verified locally: **28 October 2026**
 
 The dedicated team HTTP suite exercises the running Node server, SQLite-backed

@@ -975,6 +975,10 @@ function ReplayEditor({
 }
 
 export function AuditPanel({ snapshot }: { snapshot: TeamSnapshot }) {
+  const [visibleCount, setVisibleCount] = useState(12);
+  const listId = useId();
+  const shown = Math.min(visibleCount, snapshot.events.length);
+  const hasMore = shown < snapshot.events.length;
   return (
     <section className="team-audit-panel">
       <div className="team-section-heading">
@@ -982,15 +986,17 @@ export function AuditPanel({ snapshot }: { snapshot: TeamSnapshot }) {
           <p className="team-eyebrow">WHO DID WHAT</p>
           <h2>The decision record</h2>
         </div>
-        <span className="team-count-label">{snapshot.events.length} events</span>
+        <span className="team-count-label" aria-live="polite" aria-atomic="true">
+          Latest {shown} of {snapshot.events.length} events
+        </span>
       </div>
-      <div className="team-audit-list">
+      <div className="team-audit-list" id={listId}>
         {!snapshot.events.length ? (
           <p className="team-audit-empty">
             No decisions yet. Run a scenario to begin the server-recorded history.
           </p>
         ) : null}
-        {snapshot.events.slice(0, 12).map((event) => (
+        {snapshot.events.slice(0, shown).map((event) => (
           <article key={event.id}>
             <span className="team-audit-time">{displayTime(event.createdAt)}</span>
             <div>
@@ -1003,6 +1009,26 @@ export function AuditPanel({ snapshot }: { snapshot: TeamSnapshot }) {
           </article>
         ))}
       </div>
+      {hasMore ? (
+        <div className="team-section-heading">
+          <button
+            className="team-button secondary compact"
+            aria-controls={listId}
+            onClick={() => setVisibleCount((count) => Math.min(count + 12, 500))}
+          >
+            Show more events
+          </button>
+          <span className="team-count-label">
+            {snapshot.events.length - shown} older events available
+          </span>
+        </div>
+      ) : null}
+      {snapshot.events.length >= 500 ? (
+        <p className="team-audit-footnote">
+          The server returns at most the latest 500 workspace events. Earlier events may exist
+          outside this view.
+        </p>
+      ) : null}
       <p className="team-audit-footnote">
         Server-recorded actors and timestamps. Fictional demo identities are not independent
         organisational verification.

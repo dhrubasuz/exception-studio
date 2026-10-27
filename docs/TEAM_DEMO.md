@@ -6,7 +6,7 @@ Open [Exception Studio](https://studio.dhrub.com.np/), create a workspace and sa
 
 ## 1. Repair schema drift
 
-Sign in as Avery, the analyst. Queue schema drift. The source arrives with the wrong shape and stops. Inspect original JSON/hash. Enter a valid uppercase reference, fictional team and whole minutes, give a repair reason, then submit for approval.
+As Avery, the analyst, queue schema drift. The source arrives with the wrong shape and stops. Inspect original JSON/hash. Enter a valid uppercase reference, fictional team and whole minutes, give a repair reason, then submit for approval.
 
 Switch to Sam, the approver. Inspect proposed values and the analyst reason. Approve with a separate reason. The worker writes a receipt. Inspect actor history and download the trace. The invalid original source remains separate from the delivered payload.
 

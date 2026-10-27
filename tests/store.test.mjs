@@ -30,7 +30,8 @@ function imported(store, fixtureId = 'mixed') {
 }
 
 test('a new isolated session has no imported data and exposes no access token', (t) => {
-  const store = setup(t),
+  let tickingClock = Date.parse('2026-10-28T00:00:00.000Z');
+  const store = setup(t, { now: () => new Date(tickingClock++) }),
     created = store.createSession();
   assert.match(created.token, /^[A-Za-z0-9_-]{43}$/);
   assert.equal(created.snapshot.rows.length, 0);

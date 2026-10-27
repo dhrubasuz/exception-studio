@@ -580,7 +580,7 @@ function SystemGuide() {
         <span className="team-tag">THE SYSTEM, EXPLAINED</span>
         <h2>A retry should not become a duplicate.</h2>
         <p>
-          Exception Studio connects a fictional source and destination over authenticated loopback
+          Exception Studio connects a fictional source and destination over authenticated local
           HTTP. Source failures, schema changes and uncertain delivery responses are deliberate
           sandbox scenarios.
         </p>

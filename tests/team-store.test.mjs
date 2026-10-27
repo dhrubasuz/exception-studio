@@ -23,6 +23,13 @@ function fixture(t, options = {}) {
   t.after(() => store.close());
   return { store, advance: (n = 1000) => (ms += n), now: () => new Date(ms) };
 }
+test('workspace lifetime remains exactly 24 hours when the clock advances between reads', (t) => {
+  let tickingClock = Date.parse('2026-10-28T00:00:00.000Z');
+  const { store } = fixture(t, { now: () => new Date(tickingClock++) });
+  const { analyst } = accounts(store);
+  const { workspace } = analyst.snapshot;
+  assert.equal(Date.parse(workspace.expiresAt) - Date.parse(workspace.createdAt), 86_400_000);
+});
 function accounts(store) {
   const access = store.createDemo();
   const signIn = (role) => {

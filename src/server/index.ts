@@ -21,15 +21,23 @@ const server = createApp({
   publicOrigin: process.env.PUBLIC_ORIGIN,
   clientDirectory: resolve(dirname(fileURLToPath(import.meta.url)), '../client'),
 });
-const worker = createTeamWorker({
-  store: teamStore,
-  baseUrl: `http://127.0.0.1:${port}`,
-  secret: teamSandboxSecret,
-});
+let worker: ReturnType<typeof createTeamWorker> | undefined;
 server.listen(port, process.env.HOST || '127.0.0.1', () => {
+  // Managed hosts may replace the requested TCP port with a local Unix socket.
+  // Use the actual bound server address rather than assuming PORT was retained.
+  const bound = server.address();
+  if (!bound) throw new Error('The HTTP server did not expose its bound address.');
+  const socketPath = typeof bound === 'string' ? bound : undefined;
+  const loopback = typeof bound !== 'string' && bound.family === 'IPv6' ? '[::1]' : '127.0.0.1';
+  worker = createTeamWorker({
+    store: teamStore,
+    baseUrl: `http://${loopback}:${typeof bound === 'string' ? port : bound.port}`,
+    secret: teamSandboxSecret,
+    ...(socketPath ? { socketPath } : {}),
+  });
   worker.start();
   console.log(
-    `Exception Studio Team Edition listening on port ${port}; fictional-data sandbox mode.`,
+    `Exception Studio Team Edition ready; connector transport: ${typeof bound === 'string' ? 'local socket' : 'loopback TCP port ' + bound.port}; fictional-data sandbox mode.`,
   );
 });
 const cleanupTimer = setInterval(
@@ -50,7 +58,7 @@ const stop = () => {
   stopping = true;
   clearInterval(cleanupTimer);
   // Stop new claims before draining the HTTP server, including an active loopback request.
-  void worker.stop().finally(() => {
+  void (worker?.stop() || Promise.resolve()).finally(() => {
     server.close(() => {
       teamStore.close();
       store.close();
@@ -66,3 +74,6 @@ const stop = () => {
 };
 process.on('SIGINT', stop);
 process.on('SIGTERM', stop);
+process.on('message', (message: unknown) => {
+  if (message === 'shutdown') stop();
+});
