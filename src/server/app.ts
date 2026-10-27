@@ -2,15 +2,19 @@
 import { createServer, type IncomingMessage, type ServerResponse, type Server } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import { extname, resolve, sep } from 'node:path';
-import { randomBytes, createHash } from 'node:crypto';
+import { randomBytes, createHash, timingSafeEqual } from 'node:crypto';
 import { HttpError } from './errors.js';
 import { MAX_REQUEST_BYTES } from './domain.js';
 import type { MutationResult, StudioStore } from './store.js';
+import type { TeamStore } from './team-store.js';
+import type { TeamCommandResult } from '../shared/team-contracts.js';
 
 const COOKIE_NAME = 'es_session';
 const COOKIE_AGE = 24 * 60 * 60;
 export interface AppOptions {
   store: StudioStore;
+  teamStore?: TeamStore;
+  teamSandboxSecret?: string;
   clientDirectory?: string;
   publicOrigin?: string;
   secureCookies?: boolean;
@@ -89,6 +93,7 @@ export function createApp(options: AppOptions): Server {
   const publicOrigin = options.publicOrigin ? new URL(options.publicOrigin).origin : undefined;
   const secureCookies = options.secureCookies ?? publicOrigin?.startsWith('https://') ?? false;
   const cookieName = secureCookies ? '__Host-' + COOKIE_NAME : COOKIE_NAME;
+  const actorCookieName = secureCookies ? '__Host-est_actor' : 'est_actor';
   const clientDirectory = options.clientDirectory ? resolve(options.clientDirectory) : undefined;
   const now = options.now || Date.now;
   const salt = randomBytes(16).toString('hex');
@@ -162,12 +167,43 @@ export function createApp(options: AppOptions): Server {
       const url = new URL(request.url, 'http://local.invalid');
       const path = decodeURIComponent(url.pathname);
       const token = getCookie(request, cookieName);
+      const actorToken = getCookie(request, actorCookieName);
       const method = request.method || 'GET';
+      // A signed loopback connector uses its own narrow boundary, not browser cookies.
+      const sandbox = path.match(/^\/api\/team\/sandbox\/([a-f0-9-]{36})\/(source|destination)$/);
+      if (sandbox && options.teamStore) {
+        const supplied = request.headers['x-team-sandbox-secret'];
+        const expected = options.teamSandboxSecret;
+        const suppliedBytes = Buffer.from(typeof supplied === 'string' ? supplied : '');
+        const expectedBytes = Buffer.from(expected || '');
+        if (
+          !expected ||
+          typeof supplied !== 'string' ||
+          suppliedBytes.length !== expectedBytes.length ||
+          !timingSafeEqual(suppliedBytes, expectedBytes)
+        )
+          throw new HttpError(
+            403,
+            'SANDBOX_SIGNATURE_REQUIRED',
+            'This endpoint is reserved for the local connector worker.',
+          );
+        const source = sandbox[2] === 'source';
+        if ((source && method !== 'GET') || (!source && method !== 'POST'))
+          throw new HttpError(405, 'METHOD_NOT_ALLOWED', 'Unsupported sandbox method.');
+        const result = source
+          ? options.teamStore.sandboxSource(sandbox[1]!)
+          : options.teamStore.sandboxDestination(sandbox[1]!, await body(request));
+        if (result.delayMs) await new Promise((done) => setTimeout(done, result.delayMs));
+        if (response.destroyed) return;
+        if (result.status === 429) response.setHeader('Retry-After', '1');
+        json(response, result.status, result.body);
+        return;
+      }
       if (['POST', 'PATCH', 'PUT', 'DELETE'].includes(method)) {
         checkOrigin(request);
         rate(
           'mutation',
-          token || request.socket.remoteAddress || 'unknown',
+          request.socket.remoteAddress || 'unknown',
           options.mutationsPerMinute ?? 90,
         );
       }
@@ -178,8 +214,93 @@ export function createApp(options: AppOptions): Server {
           mode: store.publicMode ? 'fictional-demo' : 'local',
           storage: 'sqlite',
           author: 'Dhruba Poudel',
+          edition: options.teamStore ? 'team-and-classic' : 'classic',
         });
         return;
+      }
+      if (path.startsWith('/api/team') && options.teamStore) {
+        const team = options.teamStore;
+        const setActorCookie = (value: string, age = COOKIE_AGE) =>
+          response.setHeader(
+            'Set-Cookie',
+            `${actorCookieName}=${value}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${age}${secureCookies ? '; Secure' : ''}`,
+          );
+        const teamMutation = (result: TeamCommandResult) => {
+          response.setHeader('Idempotency-Replayed', result.replayed ? 'true' : 'false');
+          json(response, 200, result.snapshot);
+        };
+        if (path === '/api/team/demo' && method === 'POST') {
+          const input = await body(request);
+          if (
+            !input ||
+            typeof input !== 'object' ||
+            Array.isArray(input) ||
+            Object.keys(input).length
+          )
+            throw new HttpError(
+              422,
+              'INVALID_DEMO_REQUEST',
+              'Start a fictional team workspace with an empty JSON object.',
+            );
+          rate('team-demo', request.socket.remoteAddress || 'unknown', 4);
+          json(response, 201, team.createDemo());
+          return;
+        }
+        if (path === '/api/team/login' && method === 'POST') {
+          rate('team-login', request.socket.remoteAddress || 'unknown', 20);
+          const login = team.login(await body(request));
+          if (actorToken) team.logout(actorToken);
+          setActorCookie(login.token);
+          json(response, 200, login.snapshot);
+          return;
+        }
+        if (path === '/api/team/logout' && method === 'POST') {
+          const input = await body(request);
+          if (
+            !input ||
+            typeof input !== 'object' ||
+            Array.isArray(input) ||
+            Object.keys(input).length
+          )
+            throw new HttpError(422, 'INVALID_LOGOUT', 'Use an empty JSON object to sign out.');
+          team.logout(actorToken);
+          setActorCookie('', 0);
+          json(response, 200, { ok: true });
+          return;
+        }
+        if (path === '/api/team/workspace' && method === 'GET') {
+          json(response, 200, team.getSnapshot(actorToken));
+          return;
+        }
+        if (path === '/api/team/jobs' && method === 'POST') {
+          teamMutation(team.enqueue(actorToken, idempotencyKey(request), await body(request)));
+          return;
+        }
+        const command = path.match(/^\/api\/team\/jobs\/([a-f0-9-]{36})\/(review|approve|replay)$/);
+        if (command && method === 'POST') {
+          const id = command[1]!,
+            action = command[2];
+          const input = await body(request);
+          const key = idempotencyKey(request);
+          teamMutation(
+            action === 'review'
+              ? team.review(actorToken, id!, key, input)
+              : action === 'approve'
+                ? team.approve(actorToken, id!, key, input)
+                : team.replay(actorToken, id!, key, input),
+          );
+          return;
+        }
+        const trace = path.match(/^\/api\/team\/jobs\/([a-f0-9-]{36})\/trace\.json$/);
+        if (trace && method === 'GET') {
+          response.setHeader(
+            'Content-Disposition',
+            `attachment; filename="exception-studio-trace-${trace[1]}.json"`,
+          );
+          json(response, 200, team.trace(actorToken, trace[1]!));
+          return;
+        }
+        throw new HttpError(404, 'NOT_FOUND', 'That team route or method is not available.');
       }
       if (path === '/api/session' && (method === 'GET' || method === 'POST')) {
         if (method === 'GET' && token) {

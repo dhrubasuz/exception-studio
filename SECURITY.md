@@ -1,45 +1,44 @@
 # Security scope
 
-Maintainer: **Dhruba Poudel** · Last reviewed: **27 October 2026**
+Maintainer: **Dhruba Poudel** · Last reviewed: **28 October 2026**
 
-Exception Studio is a public portfolio demonstration for **bundled fictional data**. It is not an enterprise identity, approval or records-management service. Please do not enter personal, employer, customer, financial or confidential information, including in review reasons.
+Exception Studio is a public portfolio lab using **fictional data and fictional accounts**. Do not enter employer, customer, personal, financial or confidential information, including in reasons. Team Edition and Classic have different account models; neither is an enterprise identity or records service.
 
 ## Implemented controls
 
-- Anonymous workspaces use opaque 32-byte random cookie tokens; SQLite stores their SHA-256 hashes. Sandbox IDs in JSON do not grant access.
-- Cookies are `HttpOnly`, `SameSite=Lax` and host-only. With an HTTPS `PUBLIC_ORIGIN`, the cookie is `__Host-es_session` with `Secure` and `Path=/`.
-- Mutations require an allowed `Origin`, JSON content type and bounded request body. There is no wildcard CORS policy.
-- Reads and mutations resolve records and publications through the owning unexpired sandbox. Cross-sandbox object access returns `404`.
-- SQL transactions combine decisions, validation, revision updates, events and idempotency results. Invalid or stale commands do not partially commit.
-- SQL triggers reject normal updates to protected original source content and publication snapshots. Exports neutralise common spreadsheet formula prefixes.
-- The static server is limited to its built client directory and denies dot-prefixed paths and common database/key-file extensions. The database path belongs outside that directory.
-- A content security policy restricts scripts and connections to the same origin; inline styles are allowed for React style attributes. Framing and MIME sniffing are restricted. Notes render as text.
-- Request, record, operation and active-sandbox limits bound this small demo. Default creation/mutation rate limits are in-process and return `429` with `Retry-After`.
+- Random Team passwords are displayed once and stored as salted scrypt hashes. Session tokens use 32 random bytes; only SHA-256 token hashes are stored. Roles come from database records, never client labels or supplied role fields.
+- Cookies are `HttpOnly`, `SameSite=Lax` and host-only. HTTPS `PUBLIC_ORIGIN` uses `__Host-est_actor; Secure; Path=/`. Classic uses a separate capability cookie.
+- Workspace expiry and ownership scope authenticated queries. Cross-workspace jobs/traces return `404`. A distinct approver account is required after analyst submission.
+- Browser mutations require an allowed `Origin`, JSON content type and bounded body. No wildcard CORS. Sign-in and workspace creation have additional request limits.
+- State, audit entries and command retry records commit transactionally. Human commands check the current job revision; altered reuse of an idempotency key returns `409`.
+- Worker claims have expiring leases and random fencing tokens. A stale worker cannot complete a reclaimed attempt. Source snapshots are immutable after capture. Retries and replay generations are bounded.
+- The worker only accepts loopback base URLs and fixed sandbox routes, protected by a process-generated secret and constant-time comparison. Visitors cannot choose an arbitrary connector URL or configure external credentials.
+- Destination receipts deduplicate workspace/event pairs and retain a payload hash. A fixture deliberately commits before delaying its response, testing retry safety after an uncertain result.
+- Static serving is confined to built assets, denying dot paths and common database/key-file extensions. CSP restricts scripts and connections to the same origin; framing and MIME sniffing are restricted. User text renders as text.
+- Bounds: 24-hour workspaces; 200 active workspaces; 40 jobs/workspace; three attempts per phase/generation; three source generations; 1,000 commands; 100 successful logins and the latest 20 sessions/account.
 
-These controls have automated checks for specified behaviours. They do not establish that every attack or operational failure has been covered.
+Automated tests exercise specified boundaries, including Classic regressions. They do not establish security certification or immunity from every attack.
 
 ## Trust boundaries and limitations
 
-**A cookie is a capability, not verified identity.** Anyone holding a valid token can access its sandbox. There are no organisational accounts, roles, recovery workflow or independently verified reviewer names. “Decision history” records application actions and reasons, not a certified human approval.
+**Accounts are fictional.** One visitor receives both and can sign in as either. Distinct account decisions demonstrate permissions, not independent human approval. There is no SSO, MFA, organisation verification or recovery. Credential kits are memory-only in the browser and disappear on reload unless saved.
 
-**The server and database operator are trusted.** A person able to alter the database or application can change schema, files and recorded history. Source/publication triggers are guardrails, not protection from a privileged operator. SHA-256 values identify bytes; they do not prove data truth or independent approval.
+**The operator is trusted.** Someone able to alter database/schema/application files can alter the system and history. Triggers guard normal writes; hashes identify bytes and do not prove truth or independent approval.
 
-**Persistence depends on hosting storage.** A normal process restart preserves records when the same SQLite file survives. Redeployment or storage replacement may reset a public demo. This project does not include an audited backup, restore or disaster-recovery service.
+**Delivery safety depends on destination behaviour.** This sandbox deduplicates stable event IDs. External APIs may not. This release does not connect to real business/payment APIs or guarantee global exactly-once delivery.
 
-**Expiry is not secure erasure.** Access ends 24 hours after creation. Expired rows are removed when a new session triggers cleanup or the ten-minute timer runs. SQLite journals, database free pages, infrastructure logs, backups and copies may retain information. The project makes no secure-deletion guarantee.
+**Persistence depends on hosting storage.** Restart recovery needs the same SQLite file. Redeployments or storage replacement may reset the demo. Backups, disaster recovery and production migrations are not included. Run one Node instance; this is not a distributed queue.
 
-**Rate limiting is deliberately modest.** New-session limits use the network peer seen by Node. Behind a proxy that can aggregate visitors. Counters reset with the process, and the app does not implement a distributed quota service or a production denial-of-service defence. Run a single instance against its local SQLite file.
+**Expiry is not secure erasure.** Access ends after 24 hours; creation/periodic cleanup removes rows. Journals, free pages, infrastructure logs or backups may retain information. No secure-deletion guarantee is made.
 
-**The app does not accept arbitrary files.** Both scope modes import only bundled fictional fixtures. That reduces exposure without removing input risk: reasons and correction values still reach the API and are validated. Turning `DEMO_ONLY` off changes the scope label; it does not enable uploads or make the service suitable for real data.
+**Limits are modest.** In-process peer-IP counters reset on restart and may aggregate visitors behind a proxy. Synchronous password hashing and SQLite suit a small demo, not high throughput or production abuse defence.
 
-## Hosting checklist
+**Observability is local.** Persisted durations and trace/span IDs support inspection. No OpenTelemetry backend, production alerting or independent audit service is installed. Reload restores the cookie session but not unsaved credentials or edits.
 
-Use HTTPS, set `PUBLIC_ORIGIN` to the exact external origin, bind to the host's required interface, and place `DATABASE_PATH` outside `dist/client`. Publish only the built client assets through static serving. Keep the database, environment files and logs out of version control and public downloads. Restrict host and database access independently of the application.
+## Hosting and reporting
 
-Before any real-data use, undertake a separate review of identity and access control, privacy and retention, database migrations, infrastructure boundaries, abuse handling, monitoring, dependency maintenance, backups and recovery. This repository does not claim that work is complete.
+Use HTTPS, exact `PUBLIC_ORIGIN`, the required bind interface and `DATABASE_PATH` outside `dist/client`. Keep databases, logs, `.env`, hosting credentials and temporary artifacts out of source archives. Restrict host access separately. The worker secret is generated at startup and never sent to the browser.
 
-## Reporting a concern
+Before real-data use, separately review identity, privacy, retention, migrations, abuse handling, monitoring, backups, scaling and every real connector's delivery contract. No real-data readiness claim is made.
 
-For a potential vulnerability, contact **Dhruba Poudel** through the contact details at [about.dhrub.com.np](https://about.dhrub.com.np/). Describe the affected route, expected behaviour, observed result and a minimal fictional-data reproduction. Do not include session tokens, real personal information or secrets in a public issue. If a private reporting channel is unavailable, request one before sharing sensitive details.
-
-Testing against the live demonstration should stay within your own sandbox and its normal limits. Do not access other visitors' workspaces, automate bulk session creation or attempt to exhaust the host.
+Contact **Dhruba Poudel** through [about.dhrub.com.np](https://about.dhrub.com.np/) with a minimal fictional-data reproduction. Never put credentials, session tokens or private information in public issues; request a private channel first. Live testing must stay inside your own workspace and normal limits, without bulk account creation or exhausting the host.

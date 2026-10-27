@@ -1,6 +1,6 @@
 /* Author, creator and maintainer: Dhruba Poudel. */
 :root {
-  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  font-family: Inter, 'Segoe UI', Arial, sans-serif;
   color: #142f3d;
   background: #f5f4ee;
   font-synthesis: none;
@@ -80,14 +80,14 @@ h3 {
 h1 em,
 h2 em {
   color: var(--teal);
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: Georgia, 'Times New Roman', serif;
   font-weight: 400;
 }
 button svg {
   pointer-events: none;
 }
 code {
-  font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+  font-family: 'Cascadia Code', 'SFMono-Regular', Consolas, monospace;
   font-size: 0.91em;
 }
 fieldset {
@@ -573,7 +573,7 @@ fieldset {
   border-radius: 0;
   color: var(--muted);
 }
-.workspace-nav button[aria-current="page"] {
+.workspace-nav button[aria-current='page'] {
   border-bottom-color: var(--teal);
   color: var(--teal-dark);
 }
@@ -663,7 +663,7 @@ fieldset {
   border: 1px solid transparent;
   color: var(--muted);
 }
-.filter-group button[aria-pressed="true"] {
+.filter-group button[aria-pressed='true'] {
   background: #e4f0e9;
   color: var(--teal-dark);
   border-color: #bfd7cc;
@@ -720,7 +720,7 @@ fieldset {
 .record-top > strong {
   font-size: 12px;
   letter-spacing: 0.02em;
-  font-family: "Cascadia Code", Consolas, monospace;
+  font-family: 'Cascadia Code', Consolas, monospace;
 }
 .record-meta {
   display: flex;
@@ -734,7 +734,7 @@ fieldset {
   position: relative;
 }
 .record-meta > span + span::before {
-  content: "·";
+  content: '·';
   position: absolute;
   left: -8px;
 }
@@ -826,7 +826,7 @@ fieldset {
   padding-bottom: 9px;
 }
 .inspector .panel-heading h2 {
-  font-family: "Cascadia Code", Consolas, monospace;
+  font-family: 'Cascadia Code', Consolas, monospace;
   font-size: 20px;
   letter-spacing: 0;
 }
@@ -902,10 +902,10 @@ fieldset {
 .reason-label textarea:disabled {
   background: #f3f4ee;
 }
-.record-field input[name="reference"],
-.record-field input[name="opened"],
-.record-field input[name="due"] {
-  font-family: "Cascadia Code", Consolas, monospace;
+.record-field input[name='reference'],
+.record-field input[name='opened'],
+.record-field input[name='due'] {
+  font-family: 'Cascadia Code', Consolas, monospace;
   letter-spacing: -0.01em;
 }
 .changed-marker {

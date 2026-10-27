@@ -1,61 +1,54 @@
-# Exception Studio
+# Exception Studio · Team Edition
 
-**An operations import should explain what changed before it becomes a report.**
+**A connector failure should become a recoverable job, with an accountable decision before delivery.**
 
-Exception Studio is a full-stack workbench for reviewing an imperfect operational dataset. It preserves the source, holds exceptions for a reasoned decision, reconciles every row, and freezes accepted records into an inspectable CSV and manifest.
+Exception Studio is a working, full-stack reliability lab. Break a fictional connector, inspect its persisted attempts, repair a changed payload as an analyst, and authorise delivery with a separate approver account. A background worker uses actual HTTP requests, a durable SQLite queue and a destination receipt ledger to make recovery inspectable.
 
-Created and maintained by **Dhruba Poudel**. React · TypeScript · Node.js · SQLite.
+Created and maintained by **Dhruba Poudel** · React · TypeScript · Node.js 24 · SQLite.
 
-**[Open the working demo →](https://studio.dhrub.com.np/)** · [Read the case study](https://about.dhrub.com.np/cases/exception-studio.html) · [Automated checks](https://github.com/dhrubasuz/exception-studio/actions)
+**[Live Team Edition](https://studio.dhrub.com.np/)** · [Classic import workbench](https://studio.dhrub.com.np/classic) · [Automated checks](https://github.com/dhrubasuz/exception-studio/actions) · [Security boundaries](SECURITY.md)
 
-The public HTTPS workflow was verified on **27 October 2026**: load the fictional sample, record six review decisions, freeze revision 7, and download its CSV and manifest. The 1,270-byte CSV matched the manifest's SHA-256, with 22 source rows reconciled to 21 accepted and one excluded. This is a bounded public demonstration, not a production business rollout.
+## Explore a failure, then prove the recovery
 
-![Exception Studio workspace: reconciliation totals, exception queue and original-versus-current record inspector](docs/workspace.png)
+1. Create a fictional workspace, which signs you in as **Avery, the analyst**. Save its one-time demo credential kit if you want to switch accounts after reloading.
+2. Queue a scenario. Watch actual persisted source attempts and retry deadlines.
+3. Review the source or repair schema drift, then submit the payload with a reason.
+4. Switch to **Sam, the approver**, inspect the payload and approve delivery with a reason.
+5. Inspect the destination receipt, actor history and downloadable JSON trace.
+6. Try **lost delivery response**: the destination commits before the first response times out. Its retry returns the existing receipt, without writing a duplicate.
 
-## The problem
+Both accounts belong to a private, 24-hour fictional workspace. A single visitor controls both accounts; this demonstrates server-enforced roles and distinct account decisions, **not independently verified people or an enterprise identity service**. Do not enter real business or personal data.
 
-A dashboard can look convincing while its input contains duplicate references, missing ownership, impossible dates or negative effort. Silently dropping those rows hides uncertainty; editing the source removes context.
-
-This project makes that boundary visible. Its fictional 22-row service-data sample begins with **16 accepted records and 6 held records**. Every source row remains accounted for:
-
-```text
-source rows = accepted + held + excluded
-```
-
-The application demonstrates the review and publication step before downstream reporting. It does not claim a production business rollout, customer outcome or verified approval identity.
-
-## Try the workflow
-
-1. Load the mixed fictional sample and inspect the held rows.
-2. Compare immutable source values with editable current values.
-3. Correct a row or exclude it with a specific reason. Every successful decision revalidates the active batch.
-4. Review the decision history and reconciliation totals.
-5. When no held rows remain, freeze the revision and download its CSV and JSON manifest.
-6. Make a later correction: the earlier download keeps its exact bytes and hash.
-
-An important edge case is deliberate: correcting one duplicate can clear another row's validation issue, but that original exception still requires explicit human review. A green rule result does not silently become an approval.
-
-For a reproducible walkthrough, including stale edits and unchanged earlier exports, see [DEMO.md](docs/DEMO.md).
-
-## Technical substance
-
-| Concern | Implemented behaviour |
+| Scenario | Observable behaviour |
 | --- | --- |
-| Server state | Real same-origin Node API backed by SQLite; the client does not substitute mock records when the API fails |
-| Source preservation | Original CSV, source hash and original row values are retained separately from corrections; SQL triggers reject updates to source content |
-| Atomic decisions | Row correction, whole-batch validation, revision, decision event and retry record commit together or roll back together |
-| Concurrent edits | Commands carry an expected dataset revision; a stale command returns `409` and requires deliberate recovery |
-| Uncertain requests | Import, decision and publication use idempotency keys; the client retries an uncertain command with the original key and body |
-| Session uncertainty | If starting a fresh sandbox has an unreadable response, changes are paused until the browser's current session is reloaded |
-| Reproducible exports | Publication stores frozen CSV bytes and a manifest with counts, source SHA-256 and exported-data SHA-256 |
-| Spreadsheet handling | Formula-leading exported cells are neutralised; quoted CSV parsing and source line references are tested |
-| Demo isolation | An opaque cookie selects one bounded anonymous sandbox; records and publications from another sandbox return `404` |
+| Healthy connector | Valid source → analyst review → approver decision → one receipt |
+| Rate limit | HTTP 429 twice; worker respects `Retry-After` before the third source request succeeds |
+| Source timeout | First response exceeds the request deadline; retry succeeds using the same job |
+| Schema drift | Invalid source shape is preserved; analyst supplies a validated correction and reason |
+| Duplicate event | Repeating the fixed source event does not create another job |
+| Upstream outage | Bounded 503 retries reach dead letter; analyst explicitly restores the fictional connector and replays |
+| Lost delivery response | Receipt is committed before timeout; retry returns that receipt, with one destination write |
 
-These are bounded application guarantees. They are not enterprise authentication, independent audit certification or a claim that the software is infallible. [SECURITY.md](SECURITY.md) describes the trust boundaries.
+See the [guided demo](docs/TEAM_DEMO.md) and [architecture](docs/TEAM_ARCHITECTURE.md).
+
+## Engineering decisions
+
+| Concern | Implemented boundary |
+| --- | --- |
+| Identity and roles | Workspace-scoped demo users, salted scrypt password hashes, hashed session tokens, server-side analyst/approver checks |
+| Queue durability | SQLite state, claim leases, lease-token fencing and expired-lease recovery; HTTP runs outside transactions |
+| Command uncertainty | Idempotency key binds actor, route and canonical body; identical retries reuse the command, altered reuse returns `409` |
+| Concurrent decisions | Job revision checked inside a transaction; stale decisions fail without partially applying |
+| External side effects | Fixed, authenticated loopback HTTP sandbox; destination deduplicates stable source event IDs, including commit-before-timeout |
+| Human review | Source validation never approves a payload; analyst submission and separate approver authorisation are explicit |
+| Evidence | Source hash, attempt durations, trace/span IDs, actor events, job revisions and receipt payload hashes |
+| Isolation | Workspace ownership filters, expiry, bounded jobs/attempts/commands/sessions and origin checks |
+
+The delivery path provides **at-least-once attempts with destination deduplication** within this controlled sandbox. It does not promise exactly-once delivery across arbitrary APIs. The custom trace viewer is not an OpenTelemetry collector or a distributed monitoring installation.
 
 ## Run locally
 
-Use **Node.js 24** and **pnpm 11.25.0**. The server uses Node's built-in `node:sqlite`; no database service, account or external API key is needed.
+Use **Node.js 24** and **pnpm 11.25.0**. No cloud account, API key or paid database is required.
 
 ```sh
 pnpm install --frozen-lockfile
@@ -64,84 +57,26 @@ pnpm build
 pnpm start
 ```
 
-Open **http://127.0.0.1:8080**. The default server binds only to the local machine. The SQLite database is created at `data/exception-studio.sqlite`, relative to the working directory.
-
-For an explicit local configuration in PowerShell:
-
-```powershell
-$env:HOST = '127.0.0.1'
-$env:PORT = '8080'
-$env:PUBLIC_ORIGIN = 'http://127.0.0.1:8080'
-$env:DATABASE_PATH = 'data/exception-studio.sqlite'
-pnpm start
-```
-
-Use that exact URL when `PUBLIC_ORIGIN` is set; `localhost` and `127.0.0.1` are different origins.
-
-For client development, the Vite proxy expects the API on port `65457`. In one PowerShell terminal:
-
-```powershell
-pnpm build:server
-$env:HOST = '127.0.0.1'
-$env:PORT = '65457'
-$env:PUBLIC_ORIGIN = 'http://127.0.0.1:65458'
-pnpm start
-```
-
-In another terminal run `pnpm dev`, then open **http://127.0.0.1:65458**. The configured public origin is the browser-facing Vite address; `/api` requests are proxied to the local Node server.
-
-### Configuration
+Open `http://127.0.0.1:8080`. Team Edition is the default; `/classic` retains the original import/reconciliation/export workflow. For client development, run the built server with `PORT=65457` and `PUBLIC_ORIGIN=http://127.0.0.1:65458`, then run `pnpm dev` in a separate terminal. Vite serves `http://127.0.0.1:65458` and proxies `/api`. Use your shell's environment-variable syntax.
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `HOST` | `127.0.0.1` | Server bind address; hosting may require `0.0.0.0` |
-| `PORT` | `8080` | HTTP listening port |
-| `PUBLIC_ORIGIN` | unset | Exact allowed browser origin; set the external HTTPS origin on a hosted deployment |
-| `DATABASE_PATH` | `data/exception-studio.sqlite` | Writable SQLite file, outside the static client directory |
-| `DEMO_ONLY` | `true` | Scope label; both settings accept bundled fictional fixtures only |
+| `PORT` | `8080` | HTTP port |
+| `HOST` | `127.0.0.1` | Bind address; use the hosting platform's required interface |
+| `PUBLIC_ORIGIN` | Request Host origin | Exact browser origin; use HTTPS in deployment to enable secure host-only cookies |
+| `DATABASE_PATH` | `data/exception-studio.sqlite` | SQLite file outside public client assets |
+| `DEMO_ONLY` | `true` | Classic scope label; neither mode enables arbitrary uploads |
 
-There is **no custom upload endpoint**. The mixed and clean fixtures are the only import sources in both modes. Review reasons are sent to the server and stored with the session: use fictional notes and no personal, employer or client information.
+Run one Node instance against its local SQLite file. Restarts preserve state when the file survives; storage replacement or redeployment may reset the public demo. Account recovery, SSO, backups and external connector credentials are outside this release.
 
 ## Verification
 
-As checked on **27 October 2026**, the automated suite contains **35 backend/domain/HTTP checks and 13 UI checks**. Run `pnpm test` to reproduce them against your checkout.
+`pnpm test` exercises database and HTTP boundaries using real SQLite and HTTP, followed by interface tests. The release check on 28 October 2026 passed **95 tests**: 68 domain/store/HTTP tests and 27 interface tests. CI also checks formatting, builds the complete app and audits production dependencies. The [HTTP verification notes](docs/TEAM-HTTP-VERIFICATION.md) record its scope.
 
-The tests cover failure paths as well as the main workflow: invalid-correction rollback, simultaneous writes, exact retry replay, source immutability, isolation, size/capacity/expiry boundaries, formula-safe CSV, frozen downloads after edits and database restart, stale-form recovery, and an uncertain session-switch response. UI checks run in a simulated DOM; they do not replace browser, accessibility or hosting checks.
+A passing check is evidence for its specified behaviour, not a guarantee that every failure has been eliminated. Technical timings come from fictional test traffic; no business savings or customer results are claimed.
 
-```sh
-pnpm test:api
-pnpm test:ui
-pnpm format:check
-pnpm typecheck
-pnpm build
-```
+## Classic edition
 
-Source formatting uses the pinned Prettier version in the lockfile. Run `pnpm format` before submitting a change; CI checks the same formatting rules alongside the behaviour tests and production build.
+The original workbench preserves a 22-row fictional import, requires explicit exception decisions, reconciles every row and freezes CSV/manifest bytes. Its [walkthrough](docs/DEMO.md), [architecture](docs/ARCHITECTURE.md) and [release description](docs/CLASSIC.md) remain available. Those documents describe Classic's anonymous capability cookie, not Team Edition's account model.
 
-## Read the implementation
-
-```text
-src/client/             React interface, request recovery and view models
-src/shared/contracts.ts API commands, snapshots and manifests
-src/server/domain.ts    CSV parsing, validation, reconciliation and hashing
-src/server/store.ts     SQLite schema, transactions and publication snapshots
-src/server/app.ts       HTTP routes, cookies, origin checks and static serving
-src/server/index.ts     Runtime configuration and expiry cleanup
-tests/                  Domain, store and real HTTP tests
-docs/                   Architecture, decisions and demonstration guide
-```
-
-- [Architecture and API](docs/ARCHITECTURE.md)
-- [Engineering decisions and trade-offs](docs/DECISIONS.md)
-- [Demonstration guide](docs/DEMO.md)
-- [Security scope and reporting](SECURITY.md)
-
-## Scope and retention
-
-Anonymous sandboxes expire **24 hours after creation**. Expired access is rejected immediately; cleanup runs when a new sandbox is created and approximately every ten minutes while the server runs. Download files you want to keep. Public demo data may also reset on redeployment or hosting storage replacement.
-
-Application cleanup is not a secure-erasure guarantee. Database files, SQLite journals, hosting copies and backups remain within the operator's trust boundary. The demo has no sign-up, verified reviewer identity, multi-organisation tenancy or production service guarantee.
-
-## Licence
-
-[MIT](LICENSE) · Copyright © 2026 Dhruba Poudel.
+MIT license · **Dhruba Poudel**.

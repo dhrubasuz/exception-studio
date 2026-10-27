@@ -1,9 +1,9 @@
 {
   "name": "exception-studio",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
-  "description": "A full-stack fictional operations import and exception-review workbench.",
+  "description": "A full-stack connector reliability lab with team roles, durable retries, approvals and traceable delivery.",
   "author": "Dhruba Poudel",
   "license": "MIT",
   "packageManager": "pnpm@11.25.0",
@@ -19,8 +19,8 @@
     "test:ui": "vitest run",
     "test": "tsc -p tsconfig.server.json && node --test tests/*.test.mjs && vitest run",
     "typecheck": "tsc -p tsconfig.server.json --noEmit && tsc -p tsconfig.client.json",
-    "format": "prettier --write \"src/**/*.{ts,tsx}\" \"tests/**/*.mjs\" \"*.json\" \"*.ts\" \".prettierrc.json\"",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"tests/**/*.mjs\" \"*.json\" \"*.ts\" \".prettierrc.json\""
+    "format": "prettier --write \"src/**/*.{ts,tsx,css,html}\" \"tests/**/*.mjs\" \"*.json\" \"*.ts\" \".prettierrc.json\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,css,html}\" \"tests/**/*.mjs\" \"*.json\" \"*.ts\" \".prettierrc.json\""
   },
   "dependencies": {
     "react": "19.3.1",
