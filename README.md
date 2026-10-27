@@ -41,7 +41,7 @@ See the [guided demo](docs/TEAM_DEMO.md) and [architecture](docs/TEAM_ARCHITECTU
 | Queue durability | SQLite state, claim leases, lease-token fencing and expired-lease recovery; HTTP runs outside transactions |
 | Command uncertainty | Idempotency key binds actor, route and canonical body; identical retries reuse the command, altered reuse returns `409` |
 | Concurrent decisions | Job revision checked inside a transaction; stale decisions fail without partially applying |
-| External side effects | Fixed, authenticated local HTTP sandbox; destination deduplicates stable source event IDs, including commit-before-timeout |
+| External side effects | Fixed, authenticated HTTP sandbox; destination deduplicates stable source event IDs, including commit-before-timeout |
 | Human review | Source validation never approves a payload; analyst submission and separate approver authorisation are explicit |
 | Evidence | Source hash, attempt durations, trace/span IDs, actor events, job revisions and receipt payload hashes |
 | Isolation | Workspace ownership filters, expiry, bounded jobs/attempts/commands/sessions and origin checks |
@@ -69,11 +69,11 @@ Open `http://127.0.0.1:8080`. Team Edition is the default; `/classic` retains th
 | `DATABASE_PATH` | `data/exception-studio.sqlite` | SQLite file outside public client assets |
 | `DEMO_ONLY` | `true` | Classic scope label; neither mode enables arbitrary uploads |
 
-Run one Node instance against its local SQLite file. Restarts preserve state when the file survives; storage replacement or redeployment may reset the public demo. The worker uses the server's actual bound TCP address or local socket. Processing runs while the web process is active; managed hosting may stop/restart that process, so this demo does not promise always-on processing. Account recovery, SSO, backups and external connector credentials are outside this release. See [hosting behaviour](docs/TEAM_ARCHITECTURE.md#managed-host-transport).
+Run one hosting app against its local SQLite file. Restarts preserve state when the file survives; storage replacement or redeployment may reset the public demo. Locally, the worker uses the bound TCP address or socket; managed socket deployments use the exact configured HTTPS application origin. Processing runs while the web process is active; managed hosting may stop/restart it, so this demo does not promise always-on processing. Account recovery, SSO, backups and external connector credentials are outside this release. See [hosting behaviour](docs/TEAM_ARCHITECTURE.md#managed-host-transport).
 
 ## Verification
 
-`pnpm test` exercises database and HTTP boundaries using real SQLite and HTTP, followed by interface tests. The release check on 28 October 2026 passed **107 tests**: 78 domain/store/HTTP/transport tests and 29 interface tests. CI also checks formatting, builds the complete app and audits production dependencies. The [HTTP verification notes](docs/TEAM-HTTP-VERIFICATION.md) record its scope.
+`pnpm test` exercises database and HTTP boundaries using real SQLite and HTTP, followed by interface tests. The release check on 28 October 2026 passed **110 tests**: 81 domain/store/HTTP/transport tests and 29 interface tests. CI also checks formatting, builds the complete app and audits production dependencies. The [HTTP verification notes](docs/TEAM-HTTP-VERIFICATION.md) record its scope.
 
 A passing check is evidence for its specified behaviour, not a guarantee that every failure has been eliminated. Technical timings come from fictional test traffic; no business savings or customer results are claimed.
 

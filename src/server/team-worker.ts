@@ -7,6 +7,8 @@ import type { TeamStore, TeamAttemptResult } from './team-store.js';
 export interface TeamWorkerOptions {
   store: TeamStore;
   baseUrl: string;
+  /** Trusted deployment configuration for this app's own HTTPS origin, never browser input. */
+  publicOrigin?: string;
   /** Trusted server listening address; never accepted from browser input. */
   socketPath?: string;
   secret: string;
@@ -28,6 +30,17 @@ class SandboxResponseError extends Error {
   }
 }
 const MAX_RESPONSE_BYTES = 64 * 1024;
+
+function errorIdentity(error: unknown): { name: string; code?: string } {
+  const rawName = error instanceof Error ? error.name : 'Error';
+  const rawCode = error && typeof error === 'object' && 'code' in error ? error.code : null;
+  return {
+    name: /^[A-Za-z][A-Za-z0-9]{0,63}$/.test(rawName) ? rawName : 'Error',
+    ...(typeof rawCode === 'string' && /^[A-Z][A-Z0-9_]{0,63}$/.test(rawCode)
+      ? { code: rawCode }
+      : {}),
+  };
+}
 
 /** A complete HTTP exchange over the local listening socket or loopback TCP.
  * The wall-clock deadline includes connection, headers and the entire body.
@@ -121,16 +134,41 @@ function sandboxRequest(
  */
 export function createTeamWorker(options: TeamWorkerOptions) {
   const origin = new URL(options.baseUrl);
+  const loopback = ['127.0.0.1', '[::1]', 'localhost'].includes(origin.hostname);
+  let configuredPublic: URL | undefined;
+  if (options.publicOrigin !== undefined) {
+    configuredPublic = new URL(options.publicOrigin);
+    if (
+      configuredPublic.protocol !== 'https:' ||
+      configuredPublic.username ||
+      configuredPublic.password ||
+      configuredPublic.pathname !== '/' ||
+      configuredPublic.search ||
+      configuredPublic.hash ||
+      configuredPublic.href !== `${configuredPublic.origin}/`
+    )
+      throw new Error('The trusted public origin must be a plain HTTPS origin.');
+  }
+  const ownHttpsOrigin =
+    configuredPublic !== undefined &&
+    origin.protocol === 'https:' &&
+    origin.origin === configuredPublic.origin &&
+    origin.pathname === '/' &&
+    !origin.search &&
+    !origin.hash &&
+    origin.href === `${origin.origin}/`;
   if (
     !['http:', 'https:'].includes(origin.protocol) ||
-    !['127.0.0.1', '[::1]', 'localhost'].includes(origin.hostname) ||
+    (!loopback && !ownHttpsOrigin) ||
     origin.username ||
     origin.password
   )
-    throw new Error('The educational connector worker must use a loopback sandbox.');
+    throw new Error(
+      'The connector worker must use a loopback sandbox or the configured own HTTPS origin.',
+    );
   if (
     options.socketPath !== undefined &&
-    (!options.socketPath || options.socketPath.includes('\0'))
+    (!loopback || !options.socketPath || options.socketPath.includes('\0'))
   )
     throw new Error('A trusted listening socket address is required.');
   let active: Promise<boolean> | null = null;
@@ -171,6 +209,8 @@ export function createTeamWorker(options: TeamWorkerOptions) {
           : {}),
       };
     } catch (error) {
+      // Log only bounded error categories; messages may contain private socket paths or request data.
+      console.error('Team sandbox request failed.', errorIdentity(error));
       const timedOut =
         error instanceof Error && ['TimeoutError', 'AbortError'].includes(error.name);
       result = {
@@ -200,8 +240,8 @@ export function createTeamWorker(options: TeamWorkerOptions) {
     start() {
       if (timer || stopping) return;
       timer = setInterval(() => {
-        void runOnce().catch(() =>
-          console.error('Team worker could not complete a claim; its lease will recover.'),
+        void runOnce().catch((error: unknown) =>
+          console.error('Team worker claim failed; its lease will recover.', errorIdentity(error)),
         );
       }, options.intervalMs ?? 350);
       timer.unref();

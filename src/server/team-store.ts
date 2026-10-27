@@ -152,6 +152,9 @@ export class TeamStore {
     this.dummyHash = scryptSync(randomToken(), this.dummySalt, 32);
     this.db.exec(`
       PRAGMA foreign_keys=ON; PRAGMA journal_mode=WAL; PRAGMA busy_timeout=5000;
+      CREATE TABLE IF NOT EXISTS team_runtime (
+        id INTEGER PRIMARY KEY CHECK(id=1), sandbox_secret TEXT NOT NULL
+      );
       CREATE TABLE IF NOT EXISTS team_workspaces (
         id TEXT PRIMARY KEY, name TEXT NOT NULL, created_at TEXT NOT NULL, expires_at TEXT NOT NULL,
         duplicate_events INTEGER NOT NULL DEFAULT 0
@@ -212,6 +215,21 @@ export class TeamStore {
   }
   private time() {
     return this.now().toISOString();
+  }
+  /** Private application key shared by processes using this database, never part of an API snapshot. */
+  getSandboxSecret(): string {
+    return this.transact(() => {
+      this.db
+        .prepare('INSERT OR IGNORE INTO team_runtime(id,sandbox_secret) VALUES(1,?)')
+        .run(randomBytes(32).toString('hex'));
+      const row = this.db
+        .prepare('SELECT sandbox_secret FROM team_runtime WHERE id=1')
+        .get() as SqlRow;
+      const secret = String(row.sandbox_secret);
+      if (!/^[a-f0-9]{64}$/.test(secret))
+        throw new Error('The private connector key is invalid; operator recovery is required.');
+      return secret;
+    });
   }
   private transact<T>(action: () => T): T {
     this.db.exec('BEGIN IMMEDIATE');
@@ -1066,7 +1084,7 @@ export class TeamStore {
     return {
       status: 200,
       body: good,
-      delayMs: j.scenario === 'timeout' && j.source_attempts === 1 ? 1500 : 0,
+      delayMs: j.scenario === 'timeout' && j.source_attempts === 1 ? 4500 : 0,
     };
   }
   sandboxDestination(id: string, input: unknown): SandboxResponse {
@@ -1129,7 +1147,7 @@ export class TeamStore {
       return {
         status: 200,
         body: this.receiptView(row),
-        delayMs: j.scenario === 'delivery_timeout' && j.delivery_attempts === 1 ? 1500 : 0,
+        delayMs: j.scenario === 'delivery_timeout' && j.delivery_attempts === 1 ? 4500 : 0,
       };
     });
   }

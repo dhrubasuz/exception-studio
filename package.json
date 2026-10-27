@@ -1,6 +1,6 @@
 {
   "name": "exception-studio",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "private": true,
   "type": "module",
   "description": "A full-stack connector reliability lab with team roles, durable retries, approvals and traceable delivery.",

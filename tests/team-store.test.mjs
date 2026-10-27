@@ -143,6 +143,29 @@ test('demo credentials are independent random secrets and never appear in snapsh
   cleanupDatabase(t, path);
 });
 
+test('the private sandbox key survives reopening, is shared across stores, and never enters snapshots', (t) => {
+  const path = temporaryDatabase();
+  const initial = new TeamStore({ databasePath: path });
+  const secret = initial.getSandboxSecret();
+  assert.match(secret, /^[a-f0-9]{64}$/);
+  initial.close();
+  const { store: first } = fixture(t, { databasePath: path });
+  const { store: second } = fixture(t, { databasePath: path });
+  assert.equal(first.getSandboxSecret(), secret);
+  assert.equal(second.getSandboxSecret(), secret);
+  const { analyst } = accounts(first);
+  assert.ok(!JSON.stringify(analyst.snapshot).includes(secret));
+  const sql = new DatabaseSync(path);
+  t.after(() => sql.close());
+  sql.prepare('UPDATE team_runtime SET sandbox_secret=? WHERE id=1').run('invalid');
+  assert.throws(() => second.getSandboxSecret(), /private connector key is invalid/);
+  assert.equal(
+    sql.prepare('SELECT sandbox_secret FROM team_runtime WHERE id=1').get().sandbox_secret,
+    'invalid',
+  );
+  cleanupDatabase(t, path);
+});
+
 test('wrong accounts, role forgery and extra fields cannot grant authority', (t) => {
   const { store } = fixture(t),
     pair = accounts(store),
@@ -525,7 +548,7 @@ test('a lost destination response retries to the same persisted receipt with one
     id = prepareDelivery(store, pair, 'delivery_timeout');
   let claim = store.claimNext();
   const first = store.sandboxDestination(id, { eventId: claim.eventId, payload: claim.payload });
-  assert.equal(first.delayMs, 1500);
+  assert.equal(first.delayMs, 4500);
   store.completeAttempt(id, claim.leaseToken, {
     outcome: 'timeout',
     httpStatus: null,

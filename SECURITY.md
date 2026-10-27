@@ -12,7 +12,7 @@ Exception Studio is a public portfolio lab using **fictional data and fictional 
 - Browser mutations require an allowed `Origin`, JSON content type and bounded body. No wildcard CORS. Sign-in and workspace creation have additional request limits.
 - State, audit entries and command retry records commit transactionally. Human commands check the current job revision; altered reuse of an idempotency key returns `409`.
 - Worker claims have expiring leases and random fencing tokens. A stale worker cannot complete a reclaimed attempt. Source snapshots are immutable after capture. Retries and replay generations are bounded.
-- The worker uses a loopback TCP address or the HTTP server's actual bound local socket, with fixed sandbox routes protected by a process-generated secret and constant-time comparison. Visitors cannot choose an arbitrary connector URL or configure external credentials.
+- The worker uses loopback TCP, a local socket or the exact trusted HTTPS application origin, with fixed sandbox routes protected by a private application secret and constant-time comparison. The application key is generated once in the private database so replacement web processes can authenticate. It is absent from browser responses, URLs, source and logs. Visitors cannot choose connector URLs or configure external credentials; redirects are never followed.
 - Destination receipts deduplicate workspace/event pairs and retain a payload hash. A fixture deliberately commits before delaying its response, testing retry safety after an uncertain result.
 - Static serving is confined to built assets, denying dot paths and common database/key-file extensions. CSP restricts scripts and connections to the same origin; framing and MIME sniffing are restricted. User text renders as text.
 - Bounds: 24-hour workspaces; 200 active workspaces; 40 jobs/workspace; three attempts per phase/generation; three source generations; 1,000 commands; 100 successful logins and the latest 20 sessions/account.
@@ -37,7 +37,7 @@ Automated tests exercise specified boundaries, including Classic regressions. Th
 
 ## Hosting and reporting
 
-Use HTTPS, exact `PUBLIC_ORIGIN`, the required bind interface and `DATABASE_PATH` outside `dist/client`. Keep databases, logs, `.env`, hosting credentials and temporary artifacts out of source archives. Restrict host access separately. The worker secret is generated at startup and never sent to the browser.
+Use HTTPS, exact `PUBLIC_ORIGIN`, the required bind interface and `DATABASE_PATH` outside `dist/client`. Keep databases, logs, `.env`, hosting credentials and temporary artifacts out of source archives. Restrict host access separately. The worker secret is generated once in the private SQLite database, shared by application processes and never sent to the browser.
 
 Before real-data use, separately review identity, privacy, retention, migrations, abuse handling, monitoring, backups, scaling and every real connector's delivery contract. No real-data readiness claim is made.
 

@@ -10,7 +10,7 @@ React interface ── same-origin JSON ── Node HTTP API ── SQLite trans
                                                               │
                                                       background worker
                                                               │
-                                                   authenticated local HTTP
+                                                   authenticated HTTP sandbox
                                                               │
                                           fixed source + destination sandbox
                                                      receipt deduplication
@@ -44,7 +44,7 @@ Bounded exponential retries respect the sandbox's `Retry-After`. Schema errors r
 
 ## Side effects and uncertainty
 
-Actual local HTTP source/destination routes require a process-generated secret. No arbitrary connector URLs are accepted. Original source snapshots/hash remain separate from corrections.
+Actual local HTTP source/destination routes require a private application secret. No arbitrary connector URLs are accepted. Original source snapshots/hash remain separate from corrections.
 
 A stable source event ID and unique workspace/event receipt make destination writes idempotent. The lost-response fixture commits then delays its reply past the deadline. Retrying the same event/payload returns the existing receipt. This is at-least-once attempt handling with deduplicated sandbox effects, not a universal exactly-once guarantee.
 
@@ -56,6 +56,8 @@ SQLite WAL, one Node process and bounded fictional workspaces make the lab repro
 
 ## Managed-host transport
 
-The worker is created after the HTTP server starts and uses `server.address()`. A normal local server exposes a TCP port. Managed hosting can replace the requested port with a Unix socket; Node's HTTP client supports `socketPath` for that same bound listener. No additional port is opened and the private authentication header is still required. Connector deadlines include connecting and reading the full bounded response body.
+The worker is created after the HTTP server starts. Local TCP and socket deployments use the actual `server.address()` with Node's HTTP client. Managed socket deployments with a configured HTTPS `PUBLIC_ORIGIN` call only that exact application origin. No additional port is opened. A random application key is generated transactionally once in the private SQLite database and shared across replacement processes; it is sent only in the private header, never in browser responses, source, logs or URLs. Connector deadlines cover connection, headers and the full 64 KiB-bounded response; redirects are not followed.
 
-This follows Node's [HTTP client socket options](https://nodejs.org/docs/latest-v24.x/api/http.html#httprequestoptions-callback) and handles [Passenger's reverse port binding](https://www.phusionpassenger.com/docs/advanced_guides/in_depth/node/reverse_port_binding.html). Hostinger [does not guarantee always-running workers](https://www.hostinger.com/support/hostinger-node-js-limits-for-web-and-cloud-plans/). Queue state and leases survive a process replacement when the database file survives; execution resumes when the web process is running. The public demo does not promise unattended, always-on processing. Active job polling keeps progress visible during the walkthrough.
+This accounts for [Passenger's reverse port binding](https://www.phusionpassenger.com/docs/advanced_guides/in_depth/node/reverse_port_binding.html) and [LiteSpeed's inherited-socket namespace behaviour](https://raw.githubusercontent.com/litespeedtech/openlitespeed/master/dist/fcgi-bin/lsnode.js). A reported socket pathname may not be reconnectable from the application; its existing HTTPS entry point is used without changing namespaces or permissions. The local deadline is 500 ms; the hosted HTTPS deadline is 2,000 ms to include DNS/TLS/proxy latency. Deliberate timeout fixtures delay their first response 4,500 ms. Failed exchanges log only a bounded error name/code, with no request details or private key.
+
+Hostinger [does not guarantee always-running workers](https://www.hostinger.com/support/hostinger-node-js-limits-for-web-and-cloud-plans/). Queue state and leases survive replacement when the database file survives; execution resumes when the web process runs. The public demo does not promise unattended, always-on processing. Active-job polling keeps progress visible during a walkthrough. No background keep-alive traffic or hosting-security changes are used.

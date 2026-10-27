@@ -3,7 +3,6 @@ import { fileURLToPath } from 'node:url';
 import { resolve, dirname } from 'node:path';
 import { createApp } from './app.js';
 import { createStore } from './store.js';
-import { randomBytes } from 'node:crypto';
 import { TeamStore } from './team-store.js';
 import { createTeamWorker } from './team-worker.js';
 
@@ -13,7 +12,7 @@ if (!Number.isInteger(port) || port < 1 || port > 65535)
 const databasePath = resolve(process.env.DATABASE_PATH || 'data/exception-studio.sqlite');
 const store = createStore({ databasePath, publicMode: process.env.DEMO_ONLY !== 'false' });
 const teamStore = new TeamStore({ databasePath });
-const teamSandboxSecret = randomBytes(32).toString('hex');
+const teamSandboxSecret = teamStore.getSandboxSecret();
 const server = createApp({
   store,
   teamStore,
@@ -29,15 +28,25 @@ server.listen(port, process.env.HOST || '127.0.0.1', () => {
   if (!bound) throw new Error('The HTTP server did not expose its bound address.');
   const socketPath = typeof bound === 'string' ? bound : undefined;
   const loopback = typeof bound !== 'string' && bound.family === 'IPv6' ? '[::1]' : '127.0.0.1';
+  // LiteSpeed can expose an inherited socket name in another mount namespace.
+  // Its normal HTTPS application entry point remains the supported route.
+  const ownOrigin =
+    socketPath && process.env.PUBLIC_ORIGIN?.startsWith('https://')
+      ? new URL(process.env.PUBLIC_ORIGIN).origin
+      : undefined;
   worker = createTeamWorker({
     store: teamStore,
-    baseUrl: `http://${loopback}:${typeof bound === 'string' ? port : bound.port}`,
+    baseUrl: ownOrigin || `http://${loopback}:${typeof bound === 'string' ? port : bound.port}`,
     secret: teamSandboxSecret,
-    ...(socketPath ? { socketPath } : {}),
+    ...(ownOrigin
+      ? { publicOrigin: ownOrigin, timeoutMs: 2000 }
+      : socketPath
+        ? { socketPath }
+        : {}),
   });
   worker.start();
   console.log(
-    `Exception Studio Team Edition ready; connector transport: ${typeof bound === 'string' ? 'local socket' : 'loopback TCP port ' + bound.port}; fictional-data sandbox mode.`,
+    `Exception Studio Team Edition ready; connector transport: ${ownOrigin ? 'HTTPS own origin' : typeof bound === 'string' ? 'local socket' : 'loopback TCP port ' + bound.port}; fictional-data sandbox mode.`,
   );
 });
 const cleanupTimer = setInterval(

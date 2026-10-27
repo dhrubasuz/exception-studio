@@ -260,3 +260,103 @@ test('external targets and non-HTTP schemes are rejected even when a trusted soc
     /trusted listening socket/,
   );
 });
+
+test('only the exact configured own HTTPS origin may replace loopback transport', async (t) => {
+  const store = new TeamStore();
+  t.after(() => store.close());
+  const trusted = createTeamWorker({
+    store,
+    baseUrl: 'https://demo.example.com/',
+    publicOrigin: 'https://demo.example.com',
+    secret: SECRET,
+  });
+  assert.equal(
+    await trusted.runOnce(),
+    false,
+    'Constructor acceptance does not make an external request when no work is queued.',
+  );
+  await trusted.stop();
+  for (const baseUrl of [
+    'https://other.example.com',
+    'http://demo.example.com',
+    'https://demo.example.com.evil.test',
+    'https://demo.example.com:444',
+    'https://name:password@demo.example.com',
+    'https://demo.example.com/another-path',
+    'https://demo.example.com/?token=private',
+    'https://demo.example.com/?',
+    'https://demo.example.com/#section',
+  ])
+    assert.throws(
+      () =>
+        createTeamWorker({
+          store,
+          baseUrl,
+          publicOrigin: 'https://demo.example.com',
+          secret: SECRET,
+        }),
+      /loopback sandbox|own HTTPS origin/,
+    );
+  for (const publicOrigin of [
+    'http://demo.example.com',
+    'ftp://demo.example.com',
+    'https://name:password@demo.example.com',
+    'https://demo.example.com/path',
+    'https://demo.example.com/?query=value',
+    'https://demo.example.com/?',
+    'https://demo.example.com/#section',
+  ])
+    assert.throws(
+      () =>
+        createTeamWorker({
+          store,
+          baseUrl: 'https://demo.example.com',
+          publicOrigin,
+          secret: SECRET,
+        }),
+      /plain HTTPS origin/,
+    );
+  assert.throws(
+    () =>
+      createTeamWorker({
+        store,
+        baseUrl: 'https://demo.example.com',
+        publicOrigin: 'https://demo.example.com',
+        socketPath: '/trusted/listening.sock',
+        secret: SECRET,
+      }),
+    /trusted listening socket/,
+  );
+});
+
+test('transport failure logging contains error name and code without request, secret or socket details', async (t) => {
+  const logger = t.mock.method(console, 'error', () => {});
+  const store = new TeamStore();
+  const privateSocket =
+    process.platform === 'win32'
+      ? `\\\\.\\pipe\\missing-private-worker-${randomUUID()}`
+      : join(tmpdir(), `private-missing-worker-${randomUUID()}.sock`);
+  const worker = createTeamWorker({
+    store,
+    baseUrl: 'http://127.0.0.1',
+    socketPath: privateSocket,
+    secret: SECRET,
+  });
+  t.after(async () => {
+    await worker.stop();
+    store.close();
+  });
+  const pair = actors(store),
+    id = enqueue(store, pair.analyst);
+  await worker.runOnce();
+  assert.equal(readJob(store, pair.analyst, id).status, 'retry_source');
+  assert.equal(logger.mock.callCount(), 1);
+  const [label, detail] = logger.mock.calls[0].arguments;
+  assert.equal(label, 'Team sandbox request failed.');
+  assert.deepEqual(Object.keys(detail).sort(), ['code', 'name']);
+  assert.equal(detail.name, 'Error');
+  assert.match(detail.code, /^[A-Z][A-Z0-9_]+$/);
+  const logged = JSON.stringify(logger.mock.calls[0].arguments);
+  for (const forbidden of [privateSocket, SECRET, 'http://', '/api/team/', id, pair.analyst])
+    assert.ok(!logged.includes(forbidden));
+});
