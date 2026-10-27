@@ -1,0 +1,155 @@
+{
+  "author": "Dhruba Poudel",
+  "creator": "Dhruba Poudel",
+  "job": {
+    "id": "67709bc7-d050-4825-b617-5b5f1786c434",
+    "eventId": "EVT-7491dc62-f960-406c-9e15-e64be2dc6d6e",
+    "scenario": "healthy",
+    "status": "delivered",
+    "revision": 7,
+    "createdAt": "2026-10-27T23:33:09.165Z",
+    "updatedAt": "2026-10-27T23:33:48.706Z",
+    "nextAttemptAt": null,
+    "sourceAttempts": 1,
+    "deliveryAttempts": 1,
+    "generation": 1,
+    "sourceRecovered": false,
+    "sourceRaw": {
+      "minutes": 45,
+      "reference": "WO-67709BC7",
+      "team": "North region"
+    },
+    "sourceSha256": "c40881a93df62d149c0c953b44fb608362ac5819394b5b45c19ff5f99cdf6fb8",
+    "payload": {
+      "minutes": 45,
+      "reference": "WO-67709BC7",
+      "team": "North region"
+    },
+    "submittedBy": "a033b9c2-f377-469a-aafe-6fca94233f42",
+    "submittedByName": "Avery Chen",
+    "approvedBy": "ef4c087c-65b8-4231-bb1f-d056a2b6adae",
+    "approvedByName": "Sam Rivera",
+    "reviewReason": "Checked the fictional source reference, team and effort against the preserved source before requesting approval.",
+    "approvalReason": "Reviewed the analyst submission and source evidence; authorising this fictional record for the sandbox destination.",
+    "error": null,
+    "traceId": "8c19442f3b6a0dfe15d890f80eff47cd",
+    "attempts": [
+      {
+        "id": 1,
+        "phase": "source",
+        "attempt": 1,
+        "generation": 1,
+        "startedAt": "2026-10-27T23:33:09.369Z",
+        "durationMs": 67,
+        "outcome": "success",
+        "httpStatus": 200,
+        "message": "The source response arrived for validation.",
+        "traceId": "8c19442f3b6a0dfe15d890f80eff47cd",
+        "spanId": "8d30800ebdbf4453"
+      },
+      {
+        "id": 14,
+        "phase": "delivery",
+        "attempt": 1,
+        "generation": 1,
+        "startedAt": "2026-10-27T23:33:48.664Z",
+        "durationMs": 17,
+        "outcome": "success",
+        "httpStatus": 200,
+        "message": "Destination receipt verified.",
+        "traceId": "8c19442f3b6a0dfe15d890f80eff47cd",
+        "spanId": "4a2c5cedc2a8447d"
+      }
+    ],
+    "receipt": {
+      "id": "88b7c856-835e-4b64-b2e8-7d36c7ecf2a6",
+      "eventId": "EVT-7491dc62-f960-406c-9e15-e64be2dc6d6e",
+      "reference": "WO-67709BC7",
+      "payloadSha256": "c40881a93df62d149c0c953b44fb608362ac5819394b5b45c19ff5f99cdf6fb8",
+      "createdAt": "2026-10-27T23:33:48.697Z"
+    }
+  },
+  "events": [
+    {
+      "id": 49,
+      "type": "delivery.completed",
+      "jobId": "67709bc7-d050-4825-b617-5b5f1786c434",
+      "actorName": "Connector worker",
+      "actorRole": "system",
+      "message": "Destination receipt verified.",
+      "createdAt": "2026-10-27T23:33:48.706Z",
+      "traceId": "8c19442f3b6a0dfe15d890f80eff47cd"
+    },
+    {
+      "id": 48,
+      "type": "destination.committed",
+      "jobId": "67709bc7-d050-4825-b617-5b5f1786c434",
+      "actorName": "Connector worker",
+      "actorRole": "system",
+      "message": "The sandbox destination committed one approved event.",
+      "createdAt": "2026-10-27T23:33:48.697Z",
+      "traceId": "8c19442f3b6a0dfe15d890f80eff47cd"
+    },
+    {
+      "id": 47,
+      "type": "attempt.started",
+      "jobId": "67709bc7-d050-4825-b617-5b5f1786c434",
+      "actorName": "Connector worker",
+      "actorRole": "system",
+      "message": "Claimed delivery attempt 1.",
+      "createdAt": "2026-10-27T23:33:48.664Z",
+      "traceId": "8c19442f3b6a0dfe15d890f80eff47cd"
+    },
+    {
+      "id": 46,
+      "type": "review.approved",
+      "jobId": "67709bc7-d050-4825-b617-5b5f1786c434",
+      "actorName": "Sam Rivera",
+      "actorRole": "approver",
+      "message": "Separate approver authorised delivery of the reviewed record.",
+      "createdAt": "2026-10-27T23:33:48.368Z",
+      "traceId": "8c19442f3b6a0dfe15d890f80eff47cd"
+    },
+    {
+      "id": 35,
+      "type": "review.submitted",
+      "jobId": "67709bc7-d050-4825-b617-5b5f1786c434",
+      "actorName": "Avery Chen",
+      "actorRole": "analyst",
+      "message": "Analyst reviewed the current record and submitted it for a separate approval.",
+      "createdAt": "2026-10-27T23:33:30.153Z",
+      "traceId": "8c19442f3b6a0dfe15d890f80eff47cd"
+    },
+    {
+      "id": 5,
+      "type": "source.completed",
+      "jobId": "67709bc7-d050-4825-b617-5b5f1786c434",
+      "actorName": "Connector worker",
+      "actorRole": "system",
+      "message": "The source response arrived for validation.",
+      "createdAt": "2026-10-27T23:33:09.544Z",
+      "traceId": "8c19442f3b6a0dfe15d890f80eff47cd"
+    },
+    {
+      "id": 4,
+      "type": "attempt.started",
+      "jobId": "67709bc7-d050-4825-b617-5b5f1786c434",
+      "actorName": "Connector worker",
+      "actorRole": "system",
+      "message": "Claimed source attempt 1.",
+      "createdAt": "2026-10-27T23:33:09.370Z",
+      "traceId": "8c19442f3b6a0dfe15d890f80eff47cd"
+    },
+    {
+      "id": 3,
+      "type": "job.enqueued",
+      "jobId": "67709bc7-d050-4825-b617-5b5f1786c434",
+      "actorName": "Avery Chen",
+      "actorRole": "analyst",
+      "message": "Queued a fictional source request.",
+      "createdAt": "2026-10-27T23:33:09.165Z",
+      "traceId": "8c19442f3b6a0dfe15d890f80eff47cd"
+    }
+  ],
+  "lastModifiedBy": "Dhruba Poudel"
+}

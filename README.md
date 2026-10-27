@@ -77,6 +77,8 @@ Run one hosting app against its local SQLite file. Restarts preserve state when 
 
 A passing check is evidence for its specified behaviour, not a guarantee that every failure has been eliminated. Technical timings come from fictional test traffic; no business savings or customer results are claimed.
 
+The [live verification record](docs/LIVE_VERIFICATION.md) includes seven downloaded traces with checked hashes, browser results and the recovered delivery receipt.
+
 ## Classic edition
 
 The original workbench preserves a 22-row fictional import, requires explicit exception decisions, reconciles every row and freezes CSV/manifest bytes. Its [walkthrough](docs/DEMO.md), [architecture](docs/ARCHITECTURE.md) and [release description](docs/CLASSIC.md) remain available. Those documents describe Classic's anonymous capability cookie, not Team Edition's account model.
